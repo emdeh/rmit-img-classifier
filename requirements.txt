@@ -95,8 +95,9 @@ stack-data @ file:///opt/conda/conda-bld/stack_data_1646927590127/work
 sympy @ file:///croot/sympy_1701397643339/work
 terminado @ file:///work/perseverance-python-buildout/croot/terminado_1698874934826/work
 tinycss2 @ file:///work/perseverance-python-buildout/croot/tinycss2_1698875051986/work
-torch @ file:///croot/pytorch-select_1717607455294/work
-torchvision @ file:///croot/torchvision_1722896634795/work
+torch==2.4.0
+torchaudio==2.4.0
+torchvision==0.19.0
 tornado @ file:///croot/tornado_1718740109488/work
 traitlets @ file:///croot/traitlets_1718227057033/work
 typing_extensions @ file:///croot/typing_extensions_1715268824938/work
