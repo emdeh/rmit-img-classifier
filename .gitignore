@@ -102,5 +102,5 @@ ENV/
 
 .github/**
 
-# Ignore the flowers directory and all files within it
+# Ignore the flowers directory and all files within it.
 flowers/
