@@ -104,3 +104,6 @@ ENV/
 
 # Ignore the flowers directory and all files within it.
 flowers/
+
+# Ignore .pth files
+*.pth
