@@ -18,7 +18,7 @@ defusedxml @ file:///tmp/build/80754af9/defusedxml_1615228127516/work
 executing @ file:///opt/conda/conda-bld/executing_1646925071911/work
 fastjsonschema @ file:///work/perseverance-python-buildout/croot/python-fastjsonschema_1698846742882/work
 filelock @ file:///work/perseverance-python-buildout/croot/filelock_1701733993137/work
-fsspec @ file:///croot/fsspec_1714461537038/work
+fsspec==2024.6.1
 idna @ file:///croot/idna_1714398848350/work
 ipykernel @ file:///croot/ipykernel_1705933831282/work
 ipython @ file:///croot/ipython_1718287989724/work
