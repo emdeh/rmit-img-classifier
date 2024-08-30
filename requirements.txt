@@ -12,12 +12,15 @@ certifi @ file:///croot/certifi_1720453481653/work/certifi
 cffi @ file:///croot/cffi_1714483155441/work
 charset-normalizer @ file:///croot/charset-normalizer_1721748349566/work
 comm @ file:///croot/comm_1709322850197/work
+contourpy @ file:///work/perseverance-python-buildout/croot/contourpy_1701756524386/work
+cycler @ file:///tmp/build/80754af9/cycler_1637851556182/work
 debugpy @ file:///work/perseverance-python-buildout/croot/debugpy_1698884710808/work
 decorator @ file:///opt/conda/conda-bld/decorator_1643638310831/work
 defusedxml @ file:///tmp/build/80754af9/defusedxml_1615228127516/work
 executing @ file:///opt/conda/conda-bld/executing_1646925071911/work
 fastjsonschema @ file:///work/perseverance-python-buildout/croot/python-fastjsonschema_1698846742882/work
 filelock @ file:///work/perseverance-python-buildout/croot/filelock_1701733993137/work
+fonttools @ file:///croot/fonttools_1713551344105/work
 fsspec==2024.6.1
 idna @ file:///croot/idna_1714398848350/work
 ipykernel @ file:///croot/ipykernel_1705933831282/work
@@ -40,7 +43,9 @@ jupyterlab @ file:///work/perseverance-python-buildout/croot/jupyterlab_17090605
 jupyterlab-pygments @ file:///tmp/build/80754af9/jupyterlab_pygments_1601490720602/work
 jupyterlab-widgets @ file:///croot/jupyterlab_widgets_1709322880313/work
 jupyterlab_server @ file:///work/perseverance-python-buildout/croot/jupyterlab_server_1707343148056/work
+kiwisolver @ file:///work/perseverance-python-buildout/croot/kiwisolver_1698847502605/work
 MarkupSafe @ file:///work/perseverance-python-buildout/croot/markupsafe_1707342994941/work
+matplotlib @ file:///croot/matplotlib-suite_1713336378214/work
 matplotlib-inline @ file:///work/perseverance-python-buildout/croot/matplotlib-inline_1698864771271/work
 mistune @ file:///work/perseverance-python-buildout/croot/mistune_1698895588147/work
 mkl-fft @ file:///work/perseverance-python-buildout/croot/mkl_fft_1698845673361/work
@@ -70,6 +75,7 @@ ptyprocess @ file:///tmp/build/80754af9/ptyprocess_1609355006118/work/dist/ptypr
 pure-eval @ file:///opt/conda/conda-bld/pure_eval_1646925070566/work
 pycparser @ file:///tmp/build/80754af9/pycparser_1636541352034/work
 Pygments @ file:///work/perseverance-python-buildout/croot/pygments_1698846270603/work
+pyparsing @ file:///work/perseverance-python-buildout/croot/pyparsing_1698847881454/work
 PyQt5==5.15.10
 PyQt5-sip @ file:///work/perseverance-python-buildout/croot/pyqt-split_1698847927472/work/pyqt_sip
 PySocks @ file:///work/perseverance-python-buildout/croot/pysocks_1698845478203/work
@@ -101,6 +107,7 @@ torchvision==0.19.0
 tornado @ file:///croot/tornado_1718740109488/work
 traitlets @ file:///croot/traitlets_1718227057033/work
 typing_extensions @ file:///croot/typing_extensions_1715268824938/work
+unicodedata2 @ file:///croot/unicodedata2_1713212950228/work
 urllib3 @ file:///croot/urllib3_1718912636303/work
 wcwidth @ file:///Users/ktietz/demo/mc3/conda-bld/wcwidth_1629357192024/work
 webencodings @ file:///work/perseverance-python-buildout/croot/webencodings_1698866454420/work
