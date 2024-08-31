@@ -1,4 +1,6 @@
-'''
+"""
+This will be a module docstring.
+
 This file is for utility functions used to load data and pre-process images.
 
 Predict flower name from an image with predict.py along with the probability 
@@ -19,8 +21,11 @@ Options:
 The best way to get the command line input into the scripts is with the 
 argparse module(opens in a new tab) in the standard library. 
 You can also find a nice tutorial for argparse here(opens in a new tab).
+"""
 
-'''
+from torchvision import transforms, datasets
+from torch.utils.data import DataLoader as TorchDataLoader
+
 
 class DataLoader:
     """
@@ -51,10 +56,61 @@ class DataLoader:
         Loads the data, applies transformations, and returns data loaders.
     """
     def __init__(self, data_dir):
-        pass
+        self.data_dir = data_dir
+        self.train_dir = f"{data_dir}/train"
+        self.valid_dir = f"{data_dir}/valid"
+        self.test_dir = f"{data_dir}/test"
+
+        # Placeholder for data loaders and class_to_idx
+        self.train_loader = None
+        self.valid_loader = None
+        self.test_loader = None
+        self.class_to_idx = None
+
+        # Loaad the data
+        self.load_data()
 
     def load_data(self):
-        pass
+        """
+        Loads data, applies transforms, validations and tests.
+        """
+        # Define your transforms for the training, validation, and testing sets
+        data_transforms = {
+            'train': transforms.Compose([
+                transforms.RandomRotation(30),
+                transforms.RandomResizedCrop(224),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+            ]),
+            'valid': transforms.Compose([
+                transforms.Resize(256),
+                transforms.CenterCrop(224),
+                transforms.ToTensor(),
+                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+            ]),
+            'test': transforms.Compose([
+                transforms.Resize(256),
+                transforms.CenterCrop(224),
+                transforms.ToTensor(),
+                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+            ])
+        }
+
+        # Load the datasets with ImageFolder
+        image_datasets = {
+            'train': datasets.ImageFolder(self.train_dir, transform=data_transforms['train']),
+            'valid': datasets.ImageFolder(self.valid_dir, transform=data_transforms['valid']),
+            'test': datasets.ImageFolder(self.test_dir, transform=data_transforms['test'])
+        }
+
+        # Using the image datasets and the transforms, define the dataloaders
+        self.train_loader = TorchDataLoader(image_datasets['train'], batch_size=64, shuffle=True)
+        self.valid_loader = TorchDataLoader(image_datasets['valid'], batch_size=64)
+        self.test_loader = TorchDataLoader(image_datasets['test'], batch_size=64)
+        
+        # Save the class_to_idx mapping
+        self.class_to_idx = image_datasets['train'].class_to_idx
 
 class ImageProcessor:
     """
@@ -107,7 +163,7 @@ class CheckpointManager:
     load(self, checkpoint_path):
         Loads the model's state from a checkpoint file.
     """
-    
+
     def __init__(self, checkpoint_dir):
         pass
 
