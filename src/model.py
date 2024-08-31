@@ -17,8 +17,8 @@ class ImageClassifier:
         The device (CPU or GPU) on which the model is trained or evaluated.
     criterion : torch.nn.Module
         The loss function used for training the model.
-    optimizer : torch.optim.Optimizer
-        The optimizer used for training the model.
+    optimiser : torch.optim.Optimizer
+        The optimiser used for training the model.
 
     Methods
     -------
@@ -37,7 +37,7 @@ class ImageClassifier:
     predict(self, image_path):
         Predicts the class of an input image.
     """
-    
+
     def __init__(self, architecture='vgg16', hidden_units=4096, output_size=102):
         pass
 
