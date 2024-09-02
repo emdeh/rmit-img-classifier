@@ -54,7 +54,7 @@ class ModelTrainer:
         self.learning_rate = learning_rate
         self.running_loss = running_loss
 
-        self.device = None
+        self.device = get_device()
 
         # Call methods to prep model
         self.freeze_parameters()
