@@ -323,8 +323,44 @@ class ModelTrainer:
                     self.model.train()
 
     def evaluate(self, test_loader):
-        # Eval logic here
-        pass
+        """
+        Evaluates the model on a test dataset.
+        """
+        # Set the model to evaluation mode
+        self.model.eval()
+
+        # Initialise test accuracy and number of samples
+        test_accuracy = 0
+        num_samples = 0
+
+                # Disable gradient computation as not required for validation
+        with torch.no_grad():
+            for inputs, labels in test_loader:
+                # Move inputs and labels to the appropriate device
+                inputs, labels = inputs.to(self.device), labels.to(self.device)
+                
+                # Forward pass
+                outputs = self.model(inputs)
+                
+                # Calculate probabilities
+                ps = torch.exp(outputs)
+                
+                # Get the top class
+                top_p, top_class = ps.topk(1, dim=1)
+                
+                # Compare predicted classes with true labels
+                equals = top_class == labels.view(*top_class.shape)
+                
+                # Calculate accuracy for the batch and accumulate
+                batch_accuracy = torch.mean(equals.type(torch.FloatTensor)).item()
+                test_accuracy += batch_accuracy * inputs.size(0)
+                
+                # Accumulate the number of samples
+                num_samples += inputs.size(0)
+
+        # Calculate the overall accuracy on the test set
+        test_accuracy = test_accuracy / num_samples
+        print(f"Test Accuracy: {test_accuracy:.3f}")
 
 class CheckpointManager:
     """
