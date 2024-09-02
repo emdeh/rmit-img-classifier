@@ -304,6 +304,24 @@ class CheckpointManager:
 
         return model, optimiser, epochs
 
+    @staticmethod
+    def list_checkpoints(directory='checkpoints/'):
+        """
+        List all the checkpoint files in the specified directory.
+
+        Args:
+        - directory (str): The directory containing the checkpoint files.
+
+        Returns:
+        - checkpoints (list): List of checkpoint file paths.
+        """
+        try:
+            checkpoints = [os.path.join(directory, f) for f in os.listdir(directory) if f.endswith('.pth')]
+        except FileNotFoundError as exc:
+            raise FileNotFoundError(f"Directory not found: {directory}") from exc
+
+        return checkpoints
+
 def get_device():
     """
     Determines and returns the device (CPU or GPU) to be used for training 
