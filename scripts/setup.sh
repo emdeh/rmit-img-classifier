@@ -16,7 +16,7 @@ CHECKPOINT_DIR="$PROJECT_DIR/checkpoints"
 # Install Miniconda if not already installed
 if [ ! -d "$HOME/miniconda" ]; then
     echo "Installing Miniconda..."
-    curl -O https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh
+    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
     # Install Miniconda silently and accept the EULA by using the `-b` option
     sh Miniconda3-latest-Linux-x86_64.sh -b -p $HOME/miniconda
     rm ~/sh Miniconda3-latest-Linux-x86_64.sh
