@@ -159,7 +159,6 @@ class ImageProcessor:
         pass
 
 class ModelTrainer:
-
     """
     A class to manage the training and evaluation of a deep learning model.
 
@@ -183,22 +182,43 @@ class ModelTrainer:
         Initialises the ModelTrainer with the specified model, criterion, 
         optimiser, and device.
     
+    freeze_parameters(self):
+        Freezes the parameters of the pre-trained model.
+    
+    define_classifier(self):
+        Defines and attaches a new classifier to the model.
+    
     train(self, train_loader, valid_loader, epochs=5):
         Trains the model using the provided data.
     
     evaluate(self, test_loader):
         Evaluates the model on a test dataset.
+    
+    get_device():
+        Determines and returns the device (CPU or GPU) to be used for training 
+        or evaluation.
     """
-    def __init__(self, model, criterion, optimiser):
+
+    def __init__(self, model, lr=0.001):
         self.model = model
-        self.criterion = criterion
-        self.optimiser = optimiser
         self.device = self.get_device()
+
+        # Call methods to prep model
+        self.freeze_parameters()
+        self.define_classifier()
+
+        # Move model to device
+        self.model = self.model.to(self.device)
+
+        # Specify loss function and optimiser
+        self.criterion = nn.NLLLoss()
+        self.optimiser = optim.Adam(self.model.classifier.parameters(), lr=lr)
 
     @staticmethod
     def get_device():
         """
-        Determines and returns the device (CPU or GPU) to be used for training or evaluation.
+        Determines and returns the device (CPU or GPU) to be used for training 
+        or evaluation.
         """
         if torch.cuda.is_available():
             device = torch.device("cuda")
@@ -211,6 +231,31 @@ class ModelTrainer:
             print("Using CPU.")
         
         return device
+
+    def freeze_parameters(self):
+        """
+        Freeze the parameters of the pre-trained model to avoid 
+        backpropagation through them
+        """
+        for param in self.model.parameters():
+            param.requires_grad = False
+
+    def define_classifier(self):
+        """
+        Define a new, untrained feed-forward network as a classifier that
+        replaces the pre-trained model's classifier with a new one.
+        """
+        classifier = nn.Sequential(
+            nn.Linear(25088, 4096),
+            nn.ReLU(),
+            nn.Dropout(p=0.5),
+            nn.Linear(4096, 102),
+            nn.LogSoftmax(dim=1)
+        )
+
+        self.model.classifier = classifier
+    
+
 
     def train(self, train_loader, valid_loader, epochs=5):
         # Training logic here
@@ -259,7 +304,7 @@ class CheckpointManager:
     def load(self, checkpoint_path):
         pass
 
-class ImageClassifier:
+class ImageClassifer:
     """
     A class to manage the classification process using a trained model.
 
