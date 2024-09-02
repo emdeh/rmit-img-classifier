@@ -117,5 +117,4 @@ class DataLoader:
         self.class_to_idx = image_datasets['train'].class_to_idx
 
         return self.train_loader, self.valid_loader, self.test_loader
-
-
+        

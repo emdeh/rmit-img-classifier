@@ -1,11 +1,9 @@
 '''
 This file uses a trained network to predict the class for an input image.
 '''
-import json
+
 import argparse
 from src.utils import get_device, CheckpointManager, load_label_mapping
-from src.data_loader import DataLoader
-
 
 def main():
     """

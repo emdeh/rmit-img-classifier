@@ -65,7 +65,7 @@ packaging @ file:///croot/packaging_1720101850331/work
 pandocfilters @ file:///opt/conda/conda-bld/pandocfilters_1643405455980/work
 parso @ file:///opt/conda/conda-bld/parso_1641458642106/work
 pexpect @ file:///tmp/build/80754af9/pexpect_1605563209008/work
-pillow @ file:///croot/pillow_1721059439630/work
+Pillow==9.5.0
 platformdirs @ file:///work/perseverance-python-buildout/croot/platformdirs_1701732573265/work
 ply @ file:///work/perseverance-python-buildout/croot/ply_1698846188635/work
 prometheus-client @ file:///work/perseverance-python-buildout/croot/prometheus_client_1698865353814/work
