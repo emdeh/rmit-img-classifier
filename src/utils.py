@@ -30,6 +30,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
 from torchvision import models
+from torchvision.models.vgg import VGG16_Weights
 
 class ImageProcessor:
     """
@@ -100,10 +101,7 @@ class ImageProcessor:
         # Reorder dimensions so that color channel is first
         np_image = np_image.transpose((2, 0, 1))
 
-        # Convert to PyTorch tensor
-        image_tensor = torch.tensor(np_image)
-
-        return image_tensor
+        return np_image
 
     @staticmethod
     def imshow(image, ax=None, title=None):
@@ -256,7 +254,7 @@ class CheckpointManager:
 
         # Rebuild the model based on the architecture in the checkpoint
         if model_architecture == 'vgg16':
-            model = models.vgg16(pretrained=True)
+            model = models.vgg16(weights=VGG16_Weights.IMAGENET1K_V1)
             model.classifier = checkpoint['classifier']
         else:
             raise ValueError(f"Model architecture '{model_architecture}' is not supported.")
@@ -340,21 +338,24 @@ def get_device():
     return device
 
 
-def load_label_mapping(self):
+def load_label_mapping(label_map_path):
     """
     Loads the mapping of class indices to class labels.
+
+    Args:
+    - label_map_path (str): Path to the JSON file containing the label mapping.
+
+    Returns:
+    - dict: A dictionary mapping class indices to class labels.
     """
     try:
-        with open(self.label_map_path, 'r', encoding='utf-8') as f:
+        with open(label_map_path, 'r', encoding='utf-8') as f:
             return json.load(f)
     except FileNotFoundError as exc:
-        raise FileNotFoundError(
-            f"Label mapping file not found at {self.label_map_path}"
-        ) from exc
+        raise FileNotFoundError(f"Label mapping file not found at {label_map_path}") from exc
     except json.JSONDecodeError as exc:
-        raise ValueError(
-            f"Invalid JSON in label mapping file at {self.label_map_path}"
-        ) from exc
+        raise ValueError(f"Invalid JSON in label mapping file at {label_map_path}") from exc
+
 
 def sanity_check(image_paths, model, cat_to_name, topk=5):
     """
@@ -395,7 +396,7 @@ def sanity_check(image_paths, model, cat_to_name, topk=5):
 
         # Disable gradients for inference
         with torch.no_grad():
-            output = model(image_tensor.unsqueeze(0))
+            output = model(torch.from_numpy(image_tensor).unsqueeze(0))
 
         # Get the probabilities and classes
         probs = torch.softmax(output, dim=1).cpu().numpy().flatten()

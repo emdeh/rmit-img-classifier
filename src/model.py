@@ -228,7 +228,10 @@ class ImageClassifier:
         """
         # Process the image
         image_processor = ImageProcessor()
-        image_tensor = image_processor.process_image(image_path).unsqueeze(0).float()
+        np_image = image_processor.process_image(image_path)
+
+        # Convert to PyTorch tensor and add batch dimension
+        image_tensor = torch.from_numpy(np_image).unsqueeze(0).float()
 
         # Set model to evaluation mode
         self.model.eval()
@@ -245,8 +248,8 @@ class ImageClassifier:
         top_probs = top_probs.cpu().numpy().flatten()
         top_indices = top_indices.cpu().numpy().flatten()
 
-        # Convert indices to classes
+        # Convert indices to classes, handle potential KeyError
         idx_to_class = {val: key for key, val in self.model.class_to_idx.items()}
-        top_classes = [idx_to_class[idx] for idx in top_indices]
-
+        top_classes = [idx_to_class.get(idx, "Unknown") for idx in top_indices]
+    
         return top_probs, top_classes

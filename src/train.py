@@ -18,9 +18,9 @@ Options:
 Example:
     $ python train.py --arch vgg16 --learning_rate 0.001 --hidden_units 4096 --epochs 5 --gpu
 """
-import datetime
 import argparse
 from torchvision import models
+from torchvision.models.vgg import VGG16_Weights
 from model import ModelTrainer
 from data_loader import DataLoader
 from utils import CheckpointManager, get_device
@@ -102,7 +102,7 @@ def main():
 
     # Select model architecture
     if args.arch == 'vgg16':
-        model = models.vgg16(weights=models.VGG16_Weights.IMAGENET1K_V1)
+        model = models.vgg16(weights=VGG16_Weights.IMAGENET1K_V1)
     elif args.arch == 'densenet121':
         model = models.densenet121(weights=models.DenseNet121_Weights.IMAGENET1K_V1)
     else:
