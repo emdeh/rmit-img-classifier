@@ -31,19 +31,19 @@ def main():
 
     args = parser.parse_args()
 
-    # Load the model
-    model = CheckpointManager.load_checkpoint(args.checkpoint)
+    # Load the model, optimiser, and epochs
+    model, optimiser, epochs = CheckpointManager.load_checkpoint(args.checkpoint)
 
     # Load category names
     cat_to_name = load_label_mapping(args.category_names)
 
-
     # Load the device
     device = get_device()
 
+    # Predict the class of the image
     probs, classes = model.predict(args.image_path, args.top_k)
 
-    # Map classes to names
+    # Map classes to names using data_loader's cat_to_name attribute
     flower_names = [cat_to_name[cls] for cls in classes]
 
     print(f"Predicted classes: {flower_names}")
