@@ -22,13 +22,11 @@ The best way to get the command line input into the scripts is with the
 argparse module(opens in a new tab) in the standard library. 
 You can also find a nice tutorial for argparse here(opens in a new tab).
 """
-import json
 import torch
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
-from torch.utils.data import DataLoader as TorchDataLoader
-from torchvision import transforms, datasets, models
+from torchvision import models
 
 class ImageProcessor:
     """
@@ -71,7 +69,7 @@ class ImageProcessor:
         """
         # Load the image
         pil_image = Image.open(image_path)
-        
+
         # Resize the image so the shortest side is 256 pixels
         size = 256
         aspect_ratio = pil_image.size[0] / pil_image.size[1]
@@ -79,9 +77,9 @@ class ImageProcessor:
             new_size = (int(aspect_ratio * size), size)
         else:
             new_size = (size, int(size / aspect_ratio))
-        
+
         pil_image = pil_image.resize(new_size, Image.LANCZOS)
-        
+
         # Center crop the image to 224x224
         width, height = pil_image.size
         left = (width - 224) / 2
@@ -89,19 +87,19 @@ class ImageProcessor:
         right = left + 224
         bottom = top + 224
         pil_image = pil_image.crop((left, top, right, bottom))
-        
+
         # Convert image to Numpy array and normalise
         np_image = np.array(pil_image) / 255.0
         mean = np.array([0.485, 0.456, 0.406])
         std = np.array([0.229, 0.224, 0.225])
         np_image = (np_image - mean) / std
-        
+
         # Reorder dimensions so that color channel is first
         np_image = np_image.transpose((2, 0, 1))
 
         # Convert to PyTorch tensor
         image_tensor = torch.tensor(np_image)
-        
+
         return image_tensor
 
     @staticmethod
@@ -118,29 +116,29 @@ class ImageProcessor:
         - ax (matplotlib.axes._axes.Axes): The axes with the image.
         """
         if ax is None:
-            fig, ax = plt.subplots()
+            ax = plt.subplots()
 
         # PyTorch tensors assume the color channel is the first dimension
         # but matplotlib assumes it is the third dimension
         if isinstance(image, torch.Tensor):
             image = image.numpy().transpose((1, 2, 0))
-            
+
         # Undo preprocessing
         mean = np.array([0.485, 0.456, 0.406])
         std = np.array([0.229, 0.224, 0.225])
         image = std * image + mean
-        
+
         # Image needs to be clipped between 0 and 1 or it looks like noise when displayed
         image = np.clip(image, 0, 1)
-        
+
         ax.imshow(image)
-        
+
         if title:
             ax.set_title(title)
-            
+
         return ax
 
-    def visualise_prediction(self, image_tensor, probs, classes, flower_names, ax_img, ax_bar):
+    def visualise_prediction(self, image_tensor, probs, flower_names, ax_img, ax_bar):
         """
         Visualises the image with predicted classes and probabilities.
 
@@ -155,7 +153,7 @@ class ImageProcessor:
         # Display the image
         self.imshow(image_tensor, ax=ax_img)
         ax_img.set_title(flower_names[0])  # Title with the top predicted flower name
-        
+
         # Plot the probabilities
         y_pos = np.arange(len(flower_names))
         ax_bar.barh(y_pos, probs, align='center')
@@ -216,25 +214,6 @@ class CheckpointManager:
         torch.save(checkpoint, filepath)
         print(f"Checkpoint saved to {filepath}")
 
-        """
-        Note: If the model was trained remotely as described in the
-        remote_gpu_training.md model, then it will save on the remote instance.
-        Be sure to download the model to your local machine using the following
-        command: 
-
-        scp -i "your-key.pem" ubuntu@your-remote-ip:/path/to/checkpoint.pth /path/to/save/checkpoint.pth
-
-        or scp -r -i ... for directories.
-
-        Replace "your-key.pem" with the path to your private key file,
-        "your-remote-ip" with the IP address of your remote instance,
-        "/path/to/checkpoint.pth" with the path to the model on the remote instance,
-        and "/path/to/save/checkpoint.pth" with the path where you want to save the model on your local machine.
-
-        If you don't do this, then the model will be lost when the remote 
-        instance is terminated (if there is no persistent storage).
-        """
-
     @staticmethod
     def load_checkpoint(filepath, model_architecture='vgg16', load_optimiser=True):
         """
@@ -285,18 +264,24 @@ class CheckpointManager:
                 optimiser.load_state_dict(checkpoint['optimiser_state_dict'])
             except ValueError as e:
                 print(
-                    "Warning: Failed to load optimiser state due to a parameter mismatch.\n" 
+                    "Warning: Failed to load optimiser state due to a" 
+                    "parameter mismatch.\n" 
                     f"Reason: {e}\n"
                     "\n"
                     "This could affect training in the following ways:\n"
-                    "1. If you are resuming training after a long session or with a complex model,\n" 
-                    "   starting with a fresh optimiser might cause the model to lose some momentum.\n"
-                    "   This could lead to slower convergence or different training dynamics.\n"
+                    "1. If you are resuming training after a long session or" 
+                    "with a complex model,\n" 
+                    "   starting with a fresh optimiser might cause the model" 
+                    "to lose some momentum.\n"
+                    "   This could lead to slower convergence or different" 
+                    "training dynamics.\n"
                     "\n"
-                    "2. If you are fine-tuning or performing inference, this generally won't matter as much,\n" 
+                    "2. If you are fine-tuning or performing inference, this" 
+                    "generally won't matter as much,\n"
                     "   and the model's weights are still loaded correctly.\n"
                     "\n"
-                    "A new optimiser has been reinitialised with default settings."
+                    "A new optimiser has been reinitialised with default" 
+                    "settings."
                 )
                 # Reinitialise optimiser if loading failed
                 optimiser = torch.optim.Adam(model.parameters())
@@ -322,5 +307,5 @@ def get_device():
     else:
         device = torch.device("cpu")
         print("Using CPU.")
-    
+
     return device
