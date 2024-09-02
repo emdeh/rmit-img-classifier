@@ -23,6 +23,7 @@ argparse module(opens in a new tab) in the standard library.
 You can also find a nice tutorial for argparse here(opens in a new tab).
 """
 import json
+import torch
 from torchvision import transforms, datasets
 from torch.utils.data import DataLoader as TorchDataLoader
 
@@ -122,10 +123,10 @@ class DataLoader:
         try:
             with open(self.label_map_path, 'r') as f:
                 return json.load(f)
-        except FileNotFoundError:
-            raise FileNotFoundError(f"Label mapping file not found at {self.label_map_path}")
-        except json.JSONDecodeError:
-            raise ValueError(f"Invalid JSON in label mapping file at {self.label_map_path}")
+        except FileNotFoundError as exc:
+            raise FileNotFoundError(f"Label mapping file not found at {self.label_map_path}") from exc
+        except json.JSONDecodeError as exc:
+            raise ValueError(f"Invalid JSON in label mapping file at {self.label_map_path}") from exc
 
 class ImageProcessor:
     """
@@ -186,4 +187,65 @@ class CheckpointManager:
         pass
 
     def load(self, checkpoint_path):
+        pass
+
+class ModelTrainer:
+    """
+    A class to manage the training and evaluation of a deep learning model.
+
+    This class provides methods to train a model on a dataset, validate the 
+    model's performance, and evaluate the model on a test dataset.
+
+    Attributes
+    ----------
+    model : torch.nn.Module
+        The neural network model used for training and evaluation.
+    criterion : torch.nn.Module
+        The loss function used for training the model.
+    optimiser : torch.optim.Optimizer
+        The optimiser used for training the model.
+    device : torch.device
+        The device (CPU or GPU) on which the model is trained or evaluated.
+
+    Methods
+    -------
+    __init__(self, model, criterion, optimiser):
+        Initialises the ModelTrainer with the specified model, criterion, 
+        optimiser, and device.
+    
+    train(self, train_loader, valid_loader, epochs=5):
+        Trains the model using the provided data.
+    
+    evaluate(self, test_loader):
+        Evaluates the model on a test dataset.
+    """
+    def __init__(self, model, criterion, optimiser):
+        self.model = model
+        self.criterion = criterion
+        self.optimiser = optimiser
+        self.device = self.get_device()
+
+    @staticmethod
+    def get_device():
+        """
+        Determines and returns the device (CPU or GPU) to be used for training or evaluation.
+        """
+        if torch.cuda.is_available():
+            device = torch.device("cuda")
+            print("Using NVIDIA GPU with CUDA.")
+        elif torch.backends.mps.is_available():
+            device = torch.device("mps")
+            print("Using AMD GPU with ROCm.")
+        else:
+            device = torch.device("cpu")
+            print("Using CPU.")
+        
+        return device
+
+    def train(self, train_loader, valid_loader, epochs=5):
+        # Training logic here
+        pass
+
+    def evaluate(self, test_loader):
+        # Evaluation logic here
         pass
