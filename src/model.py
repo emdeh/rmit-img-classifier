@@ -281,6 +281,8 @@ class ImageClassifier:
 
             # Display the image and prediction
             image_tensor = image_processor.process_image(image_path)
-            image_processor.visualise_prediction(image_tensor, probs, classes, flower_names, ax_img, ax_bar)
-            
+            image_processor.visualise_prediction(
+                image_tensor, probs, classes, flower_names, ax_img,
+                 ax_bar)
+
         plt.tight_layout

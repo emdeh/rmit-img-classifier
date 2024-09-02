@@ -58,7 +58,9 @@ class DataLoader:
         Loads the data, applies transformations, and returns data loaders.
     """
     def __init__(self, data_dir, label_map_path):
-        self.data_dir = data_dir # TODO: Will need a way to edit this if training remote vs locally. Was /home/ubuntu/flowers for remote
+        # TODO: Will need a way to edit this if training remote vs locally.
+        # Was /home/ubuntu/flowers for remote
+        self.data_dir = data_dir
         self.train_dir = f"{data_dir}/train"
         self.valid_dir = f"{data_dir}/valid"
         self.test_dir = f"{data_dir}/test"
@@ -120,9 +122,13 @@ class DataLoader:
         Loads the mapping of class indices to class labels.
         """
         try:
-            with open(self.label_map_path, 'r') as f:
+            with open(self.label_map_path, 'r', encoding='utf-8') as f:
                 return json.load(f)
         except FileNotFoundError as exc:
-            raise FileNotFoundError(f"Label mapping file not found at {self.label_map_path}") from exc
+            raise FileNotFoundError(
+                f"Label mapping file not found at {self.label_map_path}"
+            ) from exc
         except json.JSONDecodeError as exc:
-            raise ValueError(f"Invalid JSON in label mapping file at {self.label_map_path}") from exc
+            raise ValueError(
+                f"Invalid JSON in label mapping file at {self.label_map_path}"
+            ) from exc
