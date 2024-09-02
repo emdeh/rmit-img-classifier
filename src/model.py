@@ -91,7 +91,7 @@ class ModelTrainer:
 
         self.model.classifier = classifier
 
-    def train(self, train_loader, valid_loader, epochs):
+    def train(self, train_loader, valid_loader):
         # Training logic here
         """
         Trains the model using the provided training and validation data loaders.
@@ -114,7 +114,7 @@ class ModelTrainer:
         running_loss = 0
         print_every = 5
 
-        for epoch in range(epochs):
+        for epoch in range(self.epochs):
             for inputs, labels in train_loader:
                 steps += 1
 
@@ -151,7 +151,7 @@ class ModelTrainer:
                             equals = top_class == labels.view(*top_class.shape)
                             accuracy += torch.mean(equals.type(torch.FloatTensor)).item()
 
-                    print(f'Epoch {epoch+1}/{epochs}.. '
+                    print(f'Epoch {epoch+1}/{self.epochs}.. '
                           f'Train loss: {running_loss/print_every:.3f}.. '
                           f'Validation loss: {validation_loss/len(valid_loader):.3f}.. '
                           f'Validation accuracy: {accuracy/len(valid_loader):.3f}')

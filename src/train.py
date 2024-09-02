@@ -49,19 +49,19 @@ def confirm_options(args):
 def modify_options(args):
     # Allow users to modify the settings
     args.arch = input(f"Model architecture (vgg16 or densenet121) [Press enter for default: {args.arch}]: ") or args.arch
-    
+
     hidden_units = input(f"Number of hidden units [Press enter for default: {args.hidden_units}]: ")
     args.hidden_units = int(hidden_units) if hidden_units else args.hidden_units
-    
+
     epochs = input(f"Number of epochs [Press enter for default: {args.epochs}]: ")
     args.epochs = int(epochs) if epochs else args.epochs
-    
+
     learning_rate = input(f"Learning rate [Press enter for default: {args.learning_rate}]: ")
     args.learning_rate = float(learning_rate) if learning_rate else args.learning_rate
-    
+
     args.device = input(f"Device (cpu or gpu) [Press enter for default: {args.device}]: ") or args.device
     args.data_dir = input(f"Data directory [Press enter for default: {args.data_dir}]: ") or args.data_dir
-    
+
     confirm_options(args)
 
     return args
@@ -101,7 +101,7 @@ def main():
 
     # Create instance of DataLoader
     data_loader = DataLoader(data_dir=args.data_dir)
-    
+
     # Load data
     train_loader, valid_loader, test_loader = data_loader.load_data()
 
@@ -112,11 +112,11 @@ def main():
     trainer.device = get_device() if args.device == 'gpu' else trainer.device('cpu')
 
     # Train the model
-    trainer.train(train_loader, valid_loader, epochs=args.epochs)
+    trainer.train(train_loader, valid_loader)
 
     # Save checkpoint
     checkpoint_manager = CheckpointManager()
-    checkpoint_manager.save_checkpoint(model, trainer.optimiser, args.epochs, 'checkpoint.pth')
+    checkpoint_manager.save_checkpoint(model, trainer.optimiser, trainer.epochs, 'checkpoint.pth')
 
 if __name__ == '__main__':
     main()
