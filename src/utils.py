@@ -24,6 +24,7 @@ You can also find a nice tutorial for argparse here(opens in a new tab).
 """
 import json
 import torch
+from torch import nn, optim
 from torchvision import transforms, datasets
 from torch.utils.data import DataLoader as TorchDataLoader
 
