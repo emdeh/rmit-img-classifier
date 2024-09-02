@@ -438,19 +438,26 @@ class CheckpointManager:
         epochs : int
             The number of epochs the model was trained for.
         """
+        # Determine the device to be used
         device = get_device()
 
-        checkpoint = torch.load(filepath, map_location=device)
+        # Load the checkpoint, specify weights_only=False to load the entire checkpoint
+        checkpoint = torch.load(filepath, map_location=device, weights_only=False)
 
+        # Rebuild the model based on the architecture in the checkpoint
         if model_architecture == 'vgg16':
             model = models.vgg16(pretrained=True)
             model.classifier = checkpoint['classifier']
         else:
             raise ValueError(f"Model architecture '{model_architecture}' is not supported.")
 
+        # Load the state dict into the model
         model.load_state_dict(checkpoint['state_dict'])
+
+        # Attach the class_to_idx mapping to the model
         model.class_to_idx = checkpoint['class_to_idx']
 
+        # Rebuild optimiser if needed
         optimiser = None
         if load_optimiser:
             try:
@@ -471,9 +478,11 @@ class CheckpointManager:
                     "\n"
                     "A new optimiser has been reinitialised with default settings."
                 )
-                optimiser = torch.optim.Adam(model.parameters())  # Reinitialise optimiser if loading failed
+                # Reinitialise optimiser if loading failed
+                optimiser = torch.optim.Adam(model.parameters())
 
-        epochs = checkpoint['epochs']
+        # Load the number of epochs
+        epochs = checkpoint['epochs'] # TODO: Shoudl this be dynamic?
 
         print(f"Checkpoint loaded from {filepath}")
 
