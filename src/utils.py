@@ -370,28 +370,89 @@ class CheckpointManager:
     back into the model, enabling training to resume or evaluation at a later 
     time.
 
-    Attributes
-    ----------
-    checkpoint_dir : str
-        Directory where checkpoints are saved or loaded from.
-
     Methods
     -------
-    save(self, model, save_path):
-        Saves the model's state to a checkpoint file.
+    save_checkpoint(self, model, optimiser, epochs, filepath):
+        Saves the model checkpoint to the specified file.
     
-    load(self, checkpoint_path):
-        Loads the model's state from a checkpoint file.
+    load_checkpoint(filepath):
+        Loads the model checkpoint from the specified file and rebuilds the model.
     """
 
-    def __init__(self, checkpoint_dir):
-        pass
+    def save_checkpoint(self, model, optimiser, epochs, filepath='checkpoint.pth'):
+        """
+        Saves the model checkpoint to the specified file.
 
-    def save(self, model, save_path):
-        pass
+        Parameters
+        ----------
+        model : torch.nn.Module
+            The trained model to be saved.
+        optimiser : torch.optim.Optimizer
+            The optimizer associated with the model.
+        epochs : int
+            The number of epochs the model was trained for.
+        filepath : str
+            The path where the checkpoint will be saved.
+        """
+        # Attach the class_to_idx mapping to the model
+        model.class_to_idx = model.class_to_idx
 
-    def load(self, checkpoint_path):
-        pass
+        # Create the checkpoint dictionary
+        checkpoint = {
+            'model_architecture': type(model).__name__,
+            'input_size': 25088,  # TODO This should match the input size of the model
+            'output_size': 102,  # TODO This should match the output size of the model
+            'hidden_layers': [4096],  # List of hidden layer sizes, if applicable
+            'state_dict': model.state_dict(),
+            'class_to_idx': model.class_to_idx,
+            'classifier': model.classifier,
+            'optimiser_state_dict': optimiser.state_dict(),
+            'epochs': epochs
+        }
+
+        # Save the checkpoint
+        torch.save(checkpoint, filepath)
+        print(f"Checkpoint saved to {filepath}")
+
+    @staticmethod
+    def load_checkpoint(filepath):
+        """
+        Loads the model checkpoint from the specified file and rebuilds the model.
+
+        Parameters
+        ----------
+        filepath : str
+            The path to the checkpoint file.
+
+        Returns
+        -------
+        model : torch.nn.Module
+            The model rebuilt from the checkpoint.
+        optimiser : torch.optim.Optimizer
+            The optimizer associated with the model.
+        epochs : int
+            The number of epochs the model was trained for.
+        class_to_idx : dict
+            The class-to-index mapping for the model.
+        """
+        # Load the checkpoint
+        checkpoint = torch.load(filepath)
+        
+        # Rebuild the model
+        model = models.vgg16(pretrained=True)
+        model.classifier = checkpoint['classifier']
+        model.load_state_dict(checkpoint['state_dict'])
+        model.class_to_idx = checkpoint['class_to_idx']
+        
+        # Rebuild the optimizer
+        optimiser = optim.Adam(model.classifier.parameters(), lr=0.001)
+        optimiser.load_state_dict(checkpoint['optimiser_state_dict'])
+        
+        epochs = checkpoint['epochs']
+        
+        print(f"Checkpoint loaded from {filepath}")
+        
+        return model, optimiser, epochs
 
 class ImageClassifer:
     """
