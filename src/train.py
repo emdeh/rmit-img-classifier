@@ -65,7 +65,7 @@ def main():
     trainer = ModelTrainer(model, hidden_units=args.hidden_units, epochs=args.epochs, learning_rate=args.learning_rate, running_loss=args.running_loss)
 
     # Select the device
-    device = get_device() if args.device == 'gpu' else trainer.device = 'cpu'
+    device = get_device() if args.device == 'gpu' else trainer.device == 'cpu'
 
     # Train the model
     trainer.train(train_loader, valid_loader, epochs=args.epochs)
