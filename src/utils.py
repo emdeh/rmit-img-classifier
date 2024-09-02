@@ -202,7 +202,7 @@ class ModelTrainer:
 
     def __init__(self, model, lr=0.001):
         self.model = model
-        self.device = self.get_device()
+        self.device = get_device()
 
         # Call methods to prep model
         self.freeze_parameters()
@@ -214,24 +214,6 @@ class ModelTrainer:
         # Specify loss function and optimiser
         self.criterion = nn.NLLLoss()
         self.optimiser = optim.Adam(self.model.classifier.parameters(), lr=lr)
-
-    @staticmethod
-    def get_device():
-        """
-        Determines and returns the device (CPU or GPU) to be used for training 
-        or evaluation.
-        """
-        if torch.cuda.is_available():
-            device = torch.device("cuda")
-            print("Using NVIDIA GPU with CUDA.")
-        elif torch.backends.mps.is_available():
-            device = torch.device("mps")
-            print("Using AMD GPU with ROCm.")
-        else:
-            device = torch.device("cpu")
-            print("Using CPU.")
-        
-        return device
 
     def freeze_parameters(self):
         """
@@ -414,8 +396,27 @@ class CheckpointManager:
         torch.save(checkpoint, filepath)
         print(f"Checkpoint saved to {filepath}")
 
+        """
+        Note: If the model was trained remotely as described in the
+        remote_gpu_training.md model, then it will save on the remote instance.
+        Be sure to download the model to your local machine using the following
+        command: 
+
+        scp -i "your-key.pem" ubuntu@your-remote-ip:/path/to/checkpoint.pth /path/to/save/checkpoint.pth
+
+        or scp -r -i ... for directories.
+
+        Replace "your-key.pem" with the path to your private key file,
+        "your-remote-ip" with the IP address of your remote instance,
+        "/path/to/checkpoint.pth" with the path to the model on the remote instance,
+        and "/path/to/save/checkpoint.pth" with the path where you want to save the model on your local machine.
+
+        If you don't do this, then the model will be lost when the remote 
+        instance is terminated (if there is no persistent storage).
+        """
+
     @staticmethod
-    def load_checkpoint(filepath):
+    def load_checkpoint(filepath, model_architecture='vgg16', load_optimiser=True):
         """
         Loads the model checkpoint from the specified file and rebuilds the model.
 
@@ -423,35 +424,59 @@ class CheckpointManager:
         ----------
         filepath : str
             The path to the checkpoint file.
+        model_architecture : str
+            The architecture of the model to load (e.g., 'vgg16').
+        load_optimiser : bool
+            Whether to load the optimiser state from the checkpoint.
 
         Returns
         -------
         model : torch.nn.Module
             The model rebuilt from the checkpoint.
-        optimiser : torch.optim.Optimizer
-            The optimizer associated with the model.
+        optimiser : torch.optim.Optimizer or None
+            The optimizer associated with the model, or None if not loaded.
         epochs : int
             The number of epochs the model was trained for.
-        class_to_idx : dict
-            The class-to-index mapping for the model.
         """
-        # Load the checkpoint
-        checkpoint = torch.load(filepath)
-        
-        # Rebuild the model
-        model = models.vgg16(pretrained=True)
-        model.classifier = checkpoint['classifier']
+        device = get_device()
+
+        checkpoint = torch.load(filepath, map_location=device)
+
+        if model_architecture == 'vgg16':
+            model = models.vgg16(pretrained=True)
+            model.classifier = checkpoint['classifier']
+        else:
+            raise ValueError(f"Model architecture '{model_architecture}' is not supported.")
+
         model.load_state_dict(checkpoint['state_dict'])
         model.class_to_idx = checkpoint['class_to_idx']
-        
-        # Rebuild the optimizer
-        optimiser = optim.Adam(model.classifier.parameters(), lr=0.001)
-        optimiser.load_state_dict(checkpoint['optimiser_state_dict'])
-        
+
+        optimiser = None
+        if load_optimiser:
+            try:
+                optimiser = torch.optim.Adam(model.parameters())
+                optimiser.load_state_dict(checkpoint['optimiser_state_dict'])
+            except ValueError as e:
+                print(
+                    "Warning: Failed to load optimiser state due to a parameter mismatch.\n" 
+                    f"Reason: {e}\n"
+                    "\n"
+                    "This could affect training in the following ways:\n"
+                    "1. If you are resuming training after a long session or with a complex model,\n" 
+                    "   starting with a fresh optimiser might cause the model to lose some momentum.\n"
+                    "   This could lead to slower convergence or different training dynamics.\n"
+                    "\n"
+                    "2. If you are fine-tuning or performing inference, this generally won't matter as much,\n" 
+                    "   and the model's weights are still loaded correctly.\n"
+                    "\n"
+                    "A new optimiser has been reinitialised with default settings."
+                )
+                optimiser = torch.optim.Adam(model.parameters())  # Reinitialise optimiser if loading failed
+
         epochs = checkpoint['epochs']
-        
+
         print(f"Checkpoint loaded from {filepath}")
-        
+
         return model, optimiser, epochs
 
 class ImageClassifer:
@@ -474,3 +499,23 @@ class ImageClassifer:
         with torch.no_grad():
             output = self.model(image)
         return output
+
+
+"""STANDALONE FUNCTIONS"""
+
+    def get_device():
+        """
+        Determines and returns the device (CPU or GPU) to be used for training 
+        or evaluation.
+        """
+        if torch.cuda.is_available():
+            device = torch.device("cuda")
+            print("Using NVIDIA GPU with CUDA.")
+        elif torch.backends.mps.is_available():
+            device = torch.device("mps")
+            print("Using AMD GPU with ROCm.")
+        else:
+            device = torch.device("cpu")
+            print("Using CPU.")
+        
+        return device
