@@ -49,9 +49,16 @@ def confirm_options(args):
 def modify_options(args):
     # Allow users to modify the settings
     args.arch = input(f"Model architecture (vgg16 or densenet121) [Press enter for default: {args.arch}]: ") or args.arch
-    args.hidden_units = input(f"Number of hidden units [Press enter for default: {args.hidden_units}]: ") or args.hidden_units
-    args.epochs = input(f"Number of epochs [Press enter for default: {args.epochs}]: ") or args.epochs
-    args.learning_rate = input(f"Learning rate [Press enter for default: {args.learning_rate}]: ") or args.learning_rate
+    
+    hidden_units = input(f"Number of hidden units [Press enter for default: {args.hidden_units}]: ")
+    args.hidden_units = int(hidden_units) if hidden_units else args.hidden_units
+    
+    epochs = input(f"Number of epochs [Press enter for default: {args.epochs}]: ")
+    args.epochs = int(epochs) if epochs else args.epochs
+    
+    learning_rate = input(f"Learning rate [Press enter for default: {args.learning_rate}]: ")
+    args.learning_rate = float(learning_rate) if learning_rate else args.learning_rate
+    
     args.device = input(f"Device (cpu or gpu) [Press enter for default: {args.device}]: ") or args.device
     args.data_dir = input(f"Data directory [Press enter for default: {args.data_dir}]: ") or args.data_dir
     
@@ -102,7 +109,7 @@ def main():
     trainer = ModelTrainer(model, hidden_units=args.hidden_units, epochs=args.epochs, learning_rate=args.learning_rate)
 
     # Select the device
-    trainer.device = get_device() if args.device == 'gpu' else torch.device('cpu')
+    trainer.device = get_device() if args.device == 'gpu' else trainer.device('cpu')
 
     # Train the model
     trainer.train(train_loader, valid_loader, epochs=args.epochs)

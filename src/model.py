@@ -54,7 +54,7 @@ class ModelTrainer:
         self.learning_rate = learning_rate
         self.running_loss = running_loss
 
-        self.device = device
+        self.device = None
 
         # Call methods to prep model
         self.freeze_parameters()
@@ -105,7 +105,11 @@ class ModelTrainer:
         epochs : int
             The number of epochs to train the model.
         """
+
+        # Set the class_to_idx attribute on the model using the training data loader
+        self.model.class_to_idx = train_loader.dataset.class_to_idx
         self.model.train()
+
         steps = 0
         running_loss = 0
         print_every = 5
