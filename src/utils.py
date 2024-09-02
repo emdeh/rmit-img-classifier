@@ -119,8 +119,13 @@ class DataLoader:
         """
         Loads the mapping of class indices to class labels.
         """
-        with open(self.label_map_path, 'r') as f:
-            return json.load(f)
+        try:
+            with open(self.label_map_path, 'r') as f:
+                return json.load(f)
+        except FileNotFoundError:
+            raise FileNotFoundError(f"Label mapping file not found at {self.label_map_path}")
+        except json.JSONDecodeError:
+            raise ValueError(f"Invalid JSON in label mapping file at {self.label_map_path}")
 
 class ImageProcessor:
     """
