@@ -3,7 +3,6 @@ This file is for functions and classes relating to the model.
 '''
 
 import torch
-import matplotlib.pyplot as plt
 from torch import nn, optim
 import numpy as np
 from utils import ImageProcessor, get_device
@@ -244,41 +243,3 @@ class ImageClassifier:
         top_classes = [idx_to_class[idx] for idx in top_indices]
 
         return top_probs, top_classes
-
-    def sanity_check(self, image_paths, cat_to_name, topk=5):
-        """
-        Perform a sanity check by visualizing the model's top K predictions
-        alongside the actual images.
-
-        Args:
-        - image_paths (list): List of paths to image files.
-        - cat_to_name (dict): Mapping from class indices to flower names.
-        - topk (int): Number of top most likely classes to visualize.
-        """
-        image_processor = ImageProcessor()
-
-        # Determine the number of rows needed (each img has 1 row, 2 columns)
-        n_images = len(image_paths)
-        nrows = n_images
-        ncols = 2
-
-        # Create a figure with the dynamic number of rows
-        axes = plt.subplots(nrows=nrows, ncols=ncols, figsize=(12, 5 * nrows))
-        axes = np.array(axes).flatten()
-
-        # Loop through the image paths and axes
-        for i, image_path in enumerate(image_paths):
-            ax_img = axes[2*i]
-            ax_bar = axes[2*i + 1]
-
-            # Make predictions
-            probs, classes = self.predict(image_path, topk)
-
-            # Convert class indices to flower names
-            flower_names = [cat_to_name[cls] for cls in classes]
-
-            # Display the image and prediction
-            image_tensor = image_processor.process_image(image_path)
-            image_processor.visualise_prediction(image_tensor, probs,
-            classes, flower_names, ax_bar=None)
-            plt.show()

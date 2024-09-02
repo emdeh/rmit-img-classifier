@@ -24,8 +24,6 @@ Attributes:
 - class_to_idx: Mapping of class names to indices based on the training dataset.
 
 """
-
-import json
 from torch.utils.data import DataLoader as TorchDataLoader
 from torchvision import datasets, transforms
 
@@ -58,8 +56,6 @@ class DataLoader:
         Loads the data, applies transformations, and returns data loaders.
     """
     def __init__(self, data_dir):
-        # TODO: Will need a way to edit this if training remote vs locally.
-        # Was /home/ubuntu/flowers for remote
         self.data_dir = data_dir
         self.train_dir = f"{data_dir}/train"
         self.valid_dir = f"{data_dir}/valid"
@@ -117,4 +113,3 @@ class DataLoader:
         self.class_to_idx = image_datasets['train'].class_to_idx
 
         return self.train_loader, self.valid_loader, self.test_loader
-        
