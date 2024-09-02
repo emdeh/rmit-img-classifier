@@ -47,7 +47,7 @@ class ModelTrainer:
         or evaluation.
     """
 
-    def __init__(self, model, hidden_units=4096, epochs=5, learning_rate=0.001, running_loss=0, device):
+    def __init__(self, model, hidden_units=4096, epochs=5, learning_rate=0.001, running_loss=0, device='cpu'):
         self.model = model
         self.hidden_units = hidden_units
         self.epochs = epochs
