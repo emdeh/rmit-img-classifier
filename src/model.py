@@ -6,8 +6,8 @@ import os
 import torch
 import matplotlib.pyplot as plt
 from torch import nn, optim
+import numpy as np
 from src.utils import ImageProcessor, get_device
-
 
 # Add the src directory to the Python path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -143,7 +143,7 @@ class ModelTrainer:
 
                             # Calculate the accuracy
                             ps = torch.exp(outputs)
-                            top_p, top_class = ps.topk(1, dim=1)
+                            top_class = ps.topk(1, dim=1)
                             equals = top_class == labels.view(*top_class.shape)
                             accuracy += torch.mean(equals.type(torch.FloatTensor)).item()
 
@@ -175,7 +175,7 @@ class ModelTrainer:
                 # Calculate probabilities
                 ps = torch.exp(outputs)
                 # Get the top class
-                top_p, top_class = ps.topk(1, dim=1)
+                top_class = ps.topk(1, dim=1)
                 # Compare predicted classes with true labels
                 equals = top_class == labels.view(*top_class.shape)
                 # Calculate accuracy for the batch and accumulate
@@ -265,8 +265,8 @@ class ImageClassifier:
         ncols = 2
 
         # Create a figure with the dynamic number of rows
-        fig, axes = plt.subplots(nrows=nrows, ncols=ncols, figsize=(12, 5 * nrows))
-        axes = axes.flatten()
+        axes = plt.subplots(nrows=nrows, ncols=ncols, figsize=(12, 5 * nrows))
+        axes = np.array(axes).flatten()
 
         # Loop through the image paths and axes
         for i, image_path in enumerate(image_paths):
@@ -284,5 +284,3 @@ class ImageClassifier:
             image_processor.visualise_prediction(
                 image_tensor, probs, classes, flower_names, ax_img,
                  ax_bar)
-
-        plt.tight_layout
