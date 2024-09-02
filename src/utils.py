@@ -155,8 +155,52 @@ class ImageProcessor:
     def __init__(self, image_path):
         pass
 
-    def process_image(self):
-        pass
+    @staticmethod
+    def process_image(image_path):
+        """
+        Scales, crops, and normalises a PIL image for a PyTorch model,
+        returns a Numpy array.
+
+        Args:
+        - image_path (str): Path to the image file.
+
+        Returns:
+        - np_image (np.ndarray): Processed image as a Numpy array.
+        """
+        # Load the image
+        pil_image = Image.open(image_path)
+        
+        # Resize the image so the shortest side is 256 pixels
+        size = 256
+        aspect_ratio = pil_image.size[0] / pil_image.size[1]
+        if aspect_ratio > 1:
+            new_size = (int(aspect_ratio * size), size)
+        else:
+            new_size = (size, int(size / aspect_ratio))
+        
+        pil_image = pil_image.resize(new_size, Image.LANCZOS)
+        
+        # Center crop the image to 224x224
+        width, height = pil_image.size
+        left = (width - 224) / 2
+        top = (height - 224) / 2
+        right = left + 224
+        bottom = top + 224
+        pil_image = pil_image.crop((left, top, right, bottom))
+        
+        # Convert image to Numpy array and normalise
+        np_image = np.array(pil_image) / 255.0
+        mean = np.array([0.485, 0.456, 0.406])
+        std = np.array([0.229, 0.224, 0.225])
+        np_image = (np_image - mean) / std
+        
+        # Reorder dimensions so that color channel is first
+        np_image = np_image.transpose((2, 0, 1))
+
+        # Convert to PyTorch tensor
+        np_image = torch.tensor(np_image)
+        
+        return np_image
 
     def visualise_prediction(self, model, topk=5):
         pass
