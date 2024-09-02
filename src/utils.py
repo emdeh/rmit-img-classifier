@@ -307,7 +307,7 @@ def get_device():
         print("Using AMD GPU with ROCm.")
     else:
         device = torch.device("cpu")
-        print("Using CPU.")
+        print("GPU not found or unavailable. Using CPU.")
 
     return device
 
@@ -328,15 +328,19 @@ def load_label_mapping(self):
             f"Invalid JSON in label mapping file at {self.label_map_path}"
         ) from exc
 
-def sanity_check(self, image_paths, cat_to_name, topk=5):
+def sanity_check(image_paths, model, cat_to_name, topk=5):
     """
     Perform a sanity check by visualizing the model's top K predictions
     alongside the actual images.
 
     Args:
     - image_paths (list): List of paths to image files.
+    - model (torch.nn.Module): Trained PyTorch model for prediction.
     - cat_to_name (dict): Mapping from class indices to flower names.
     - topk (int): Number of top most likely classes to visualize.
+
+    Returns:
+    - fig (matplotlib.figure.Figure): The matplotlib figure object containing the plots.
     """
     image_processor = ImageProcessor()
 
@@ -346,22 +350,51 @@ def sanity_check(self, image_paths, cat_to_name, topk=5):
     ncols = 2
 
     # Create a figure with the dynamic number of rows
-    axes = plt.subplots(nrows=nrows, ncols=ncols, figsize=(12, 5 * nrows))
-    axes = np.array(axes).flatten()
+    fig, axes = plt.subplots(nrows=nrows, ncols=ncols, figsize=(12, 5 * nrows))
 
-    # Loop through the image paths and axes
+    # Flatten the axes array for easier indexing
+    axes = axes.flatten()
+
     for i, image_path in enumerate(image_paths):
-        ax_img = axes[2*i]
-        ax_bar = axes[2*i + 1]
+        ax_img = axes[2 * i]
+        ax_bar = axes[2 * i + 1]
 
-        # Make predictions
-        probs, classes = self.predict(image_path, topk)
-
-        # Convert class indices to flower names
-        flower_names = [cat_to_name[cls] for cls in classes]
-
-        # Display the image and prediction
+        # Process the image
         image_tensor = image_processor.process_image(image_path)
-        image_processor.visualise_prediction(image_tensor, probs,
-        classes, flower_names, ax_bar=None)
-        plt.show()
+
+        # Set model to evaluation mode
+        model.eval()
+
+        # Disable gradients for inference
+        with torch.no_grad():
+            output = model(image_tensor.unsqueeze(0))
+
+        # Get the probabilities and classes
+        probs = torch.softmax(output, dim=1).cpu().numpy().flatten()
+        top_probs, top_indices = torch.topk(torch.tensor(probs), topk)
+        top_probs = top_probs.numpy().flatten()
+        top_indices = top_indices.numpy().flatten()
+
+        # Convert indices to classes
+        idx_to_class = {val: key for key, val in model.class_to_idx.items()}
+        top_classes = [idx_to_class[idx] for idx in top_indices]
+
+        # Map classes to names
+        flower_names = [cat_to_name[cls] for cls in top_classes]
+
+        # Display the image
+        image_processor.imshow(image_tensor, ax=ax_img)
+        ax_img.set_title(flower_names[0])  # Title with the top predicted flower name
+
+        # Plot the probabilities
+        y_pos = np.arange(len(flower_names))
+        ax_bar.barh(y_pos, top_probs, align='center')
+        ax_bar.set_yticks(y_pos)
+        ax_bar.set_yticklabels(flower_names)
+        ax_bar.set_xlabel('Probability')
+        ax_bar.invert_yaxis()  # Invert y-axis so the highest probability is at the top
+
+    plt.tight_layout()
+
+    # Return the figure object
+    return fig

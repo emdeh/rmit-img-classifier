@@ -55,11 +55,11 @@ class DataLoader:
     load_data(self):
         Loads the data, applies transformations, and returns data loaders.
     """
-    def __init__(self, data_dir):
+    def __init__(self, data_dir='/data/flowers'):
         self.data_dir = data_dir
-        self.train_dir = f"{data_dir}/train"
-        self.valid_dir = f"{data_dir}/valid"
-        self.test_dir = f"{data_dir}/test"
+        self.train_dir = data_dir + '/train'
+        self.valid_dir = data_dir + '/valid'
+        self.test_dir = data_dir + '/test'
 
         # Placeholder for data loaders and class_to_idx
         self.train_loader = None

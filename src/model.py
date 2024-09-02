@@ -4,7 +4,6 @@ This file is for functions and classes relating to the model.
 
 import torch
 from torch import nn, optim
-import numpy as np
 from utils import ImageProcessor, get_device
 
 class ModelTrainer:
@@ -48,10 +47,14 @@ class ModelTrainer:
         or evaluation.
     """
 
-    def __init__(self, model, lr=0.001, hidden_units=4096):
+    def __init__(self, model, hidden_units=4096, epochs=5, learning_rate=0.001, running_loss=0, device):
         self.model = model
-        self.device = get_device()
         self.hidden_units = hidden_units
+        self.epochs = epochs
+        self.learning_rate = learning_rate
+        self.running_loss = running_loss
+
+        self.device = device
 
         # Call methods to prep model
         self.freeze_parameters()
@@ -62,7 +65,7 @@ class ModelTrainer:
 
         # Specify loss function and optimiser
         self.criterion = nn.NLLLoss()
-        self.optimiser = optim.Adam(self.model.classifier.parameters(), lr=lr)
+        self.optimiser = optim.Adam(self.model.classifier.parameters(), lr=learning_rate)
 
     def freeze_parameters(self):
         """
@@ -88,7 +91,7 @@ class ModelTrainer:
 
         self.model.classifier = classifier
 
-    def train(self, train_loader, valid_loader, epochs=5):
+    def train(self, train_loader, valid_loader, epochs):
         # Training logic here
         """
         Trains the model using the provided training and validation data loaders.

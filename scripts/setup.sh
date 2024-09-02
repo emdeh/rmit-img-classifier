@@ -27,3 +27,8 @@ pip install -r ../requirements.txt
 
 # Inform the user that setup is complete
 echo "Setup is complete. To activate the environment, run: conda activate ai_trainer_predictor"
+
+
+
+
+https://s3.amazonaws.com/content.udacity-data.com/nd089/flower_data.tar.gz

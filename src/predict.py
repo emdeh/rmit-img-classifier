@@ -4,6 +4,7 @@ This file uses a trained network to predict the class for an input image.
 
 import argparse
 from src.utils import get_device, CheckpointManager, load_label_mapping
+from src.model import ImageClassifier
 
 def main():
     """
@@ -25,21 +26,21 @@ def main():
     parser.add_argument('--top_k', type=int, default=5, help='Return top K most likely classes')
     parser.add_argument('--category_names', type=str, default='data/cat_to_name.json',
                         help='Path to category names JSON file')
-    parser.add_argument('--gpu', action='store_true', help='Use GPU for inference')
+    parser.add_argument('--device', type=str, default='gpu', help='Device (cpu or gpu)')
 
     args = parser.parse_args()
 
     # Load the model, optimiser, and epochs
-    model, optimiser, epochs = CheckpointManager.load_checkpoint(args.checkpoint)
+    model = CheckpointManager.load_checkpoint(args.checkpoint)
 
     # Load category names
     cat_to_name = load_label_mapping(args.category_names)
 
-    # Load the device
-    device = get_device()
+    # Load Classifier
+    classifier = ImageClassifier(model, cat_to_name)
 
     # Predict the class of the image
-    probs, classes = model.predict(args.image_path, args.top_k)
+    probs, classes = classifier.predict(args.image_path, args.top_k)
 
     # Map classes to names using data_loader's cat_to_name attribute
     flower_names = [cat_to_name[cls] for cls in classes]
