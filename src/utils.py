@@ -24,6 +24,7 @@ You can also find a nice tutorial for argparse here(opens in a new tab).
 """
 import json
 import torch
+import matplotlib.pyplot as plt
 import numpy as numpy
 from PIL import Image
 from torch import nn, optim
@@ -318,8 +319,6 @@ class ModelTrainer:
         )
 
         self.model.classifier = classifier
-    
-
 
     def train(self, train_loader, valid_loader, epochs=5):
         # Training logic here
@@ -581,17 +580,6 @@ class ImageClassifer:
     def __init__(self, model, label_mapping):
         self.model = model
     
-    """
-    def classify(self, image):
-        
-        # Classifies an image using the model.
-        
-        self.model.eval() # Set model to evaluation mode
-        with torch.no_grad():
-            output = self.model(image)
-        return output
-    """
-
     def predict(self, image_path, topk=5):
         """
         Predict the class (or classes) of an image using a trained deep learning model.
@@ -632,39 +620,57 @@ class ImageClassifer:
         
         return top_probs, top_classes
 
-    def sanity_check(self, image_path, model, cat_to_name, topk=5, ax_img=None, ax_bar=None):
+    def sanity_check(self, image_paths, model, cat_to_name, topk=5):
         """
         Perform a sanity check by visualizing the model's top K predictions
-        alongside the actual image.
+        alongside the actual images.
 
         Args:
-        - image_path (str): Path to the image file.
+        - image_paths (list): List of paths to image files.
         - model (torch.nn.Module): Trained PyTorch model for prediction.
         - cat_to_name (dict): Mapping from class indices to flower names.
         - topk (int): Number of top most likely classes to visualize.
-        - ax_img: Matplotlib Axes for the image.
-        - ax_bar: Matplotlib Axes for the bar chart.
         """
+        
+        # Determine the number of rows needed (each img has 1 row, 2 columns)
+        n_images = len(image_paths)
+        nrows = n_images
+        # Always 2 columns: one for the image and one for the bar chart
+        ncols = 2
+
+        # Create a figure with the dynamic number of rows
+        fig, axes = plt.subplots(nrows=nrows, ncols=ncols, figsize=(12, 5 * nrows))
+        
+        # Flatten the axes array for easier indexing
+        axes = axes.flatten()
+
+        # Loop through the image paths and axes
+        for i, image_path in enumerate(image_paths):
+            ax_img = axes[2*i]
+            ax_bar = axes[2*i + 1]
             
-        # Make predictions
-        image_classifier = ImageClassifier(model)
-        probs, classes = image_classifier.predict(image_path, topk)
-        
-        # Convert class indices to flower names
-        flower_names = [cat_to_name[cls] for cls in classes]
-        
-        # Display the image
-        image_tensor = torch.tensor(self.process_image(image_path))
-        self.imshow(image_tensor, ax=ax_img)
-        ax_img.set_title(flower_names[0])  # Title with the top predicted flower name
-        
-        # Plot the probabilities
-        y_pos = np.arange(len(flower_names))
-        ax_bar.barh(y_pos, probs, align='center')
-        ax_bar.set_yticks(y_pos)
-        ax_bar.set_yticklabels(flower_names)
-        ax_bar.set_xlabel('Probability')
-        ax_bar.invert_yaxis()  # Invert y-axis so the highest probability is at the top
+            # Make predictions
+            image_classifier = ImageClassifier(model)
+            probs, classes = image_classifier.predict(image_path, topk)
+            
+            # Convert class indices to flower names
+            flower_names = [cat_to_name[cls] for cls in classes]
+            
+            # Display the image
+            image_tensor = torch.tensor(self.process_image(image_path))
+            self.imshow(image_tensor, ax=ax_img)
+            ax_img.set_title(flower_names[0])  # Title with the top predicted flower name
+            
+            # Plot the probabilities
+            y_pos = np.arange(len(flower_names))
+            ax_bar.barh(y_pos, probs, align='center')
+            ax_bar.set_yticks(y_pos)
+            ax_bar.set_yticklabels(flower_names)
+            ax_bar.set_xlabel('Probability')
+            ax_bar.invert_yaxis()  # Invert y-axis so the highest probability is at the top
+
+        plt.tight_layout()
+        plt.show()
 
 """STANDALONE FUNCTIONS"""
 
