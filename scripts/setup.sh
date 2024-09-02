@@ -6,8 +6,7 @@ set -e
 # Echo each command being executed
 set -x
 
-# Define environment and data directories
-ENV_NAME="ai_trainer_predictor"
+# Define variables
 REPO_URL="https://github.com/emdeh/rmit-img-classifier.git"
 DATA_URL="https://s3.amazonaws.com/content.udacity-data.com/nd089/flower_data.tar.gz"
 REPO_DIR="$HOME/img-classifier"
@@ -49,6 +48,9 @@ if [ ! -d "$CHECKPOINT_DIR" ]; then
     echo "Creating checkpoints directory..."
     mkdir -p $CHECKPOINT_DIR
 fi
+
+# Get the environment name from the env.yaml file
+ENV_NAME=$(grep 'name:' env.yaml | cut -d' ' -f2)
 
 # Check if the environment already exists
 if conda info --envs | grep -q "$ENV_NAME"; then
