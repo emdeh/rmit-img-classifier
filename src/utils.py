@@ -25,7 +25,7 @@ You can also find a nice tutorial for argparse here(opens in a new tab).
 import json
 import torch
 from torch import nn, optim
-from torchvision import transforms, datasets
+from torchvision import transforms, datasets, models
 from torch.utils.data import DataLoader as TorchDataLoader
 
 
@@ -260,15 +260,67 @@ class ModelTrainer:
 
     def train(self, train_loader, valid_loader, epochs=5):
         # Training logic here
-        pass
+        """
+        Trains the model using the provided training and validation data loaders.
 
-    def evaluate(self, test_loader):
-        # Evaluation logic here
-        pass
+        Parameters
+        ----------
+        train_loader : torch.utils.data.DataLoader
+            DataLoader for the training dataset.
+        valid_loader : torch.utils.data.DataLoader
+            DataLoader for the validation dataset.
+        epochs : int
+            The number of epochs to train the model.
+        """
+        self.model.train()
+        steps = 0
+        running_loss = 0
+        print_every = 5
 
-    def train(self, train_loader, valid_loader, epochs=5):
-        # Training logic here
-        pass
+        for epoch in range(epochs):
+            for inputs, labels in train_loader:
+                steps += 1
+
+                # Move input and label tensors to the appropriate device
+                inputs, labels = inputs.to(self.device), labels.to(self.device)
+
+                # Zero the gradients
+                self.optimiser.zero_grad()
+
+                # Forward pass
+                outputs = self.model(inputs)
+                loss = self.criterion(outputs, labels)
+
+                # Backward pass and optimize
+                loss.backward()
+                self.optimiser.step()
+
+                running_loss += loss.item()
+
+                if steps % print_every == 0:
+                    # Validate the model
+                    self.model.eval()
+                    accuracy = 0
+                    validation_loss = 0
+                    with torch.no_grad():
+                        for inputs, labels in valid_loader:
+                            inputs, labels = inputs.to(self.device), labels.to(self.device)
+                            outputs = self.model(inputs)
+                            validation_loss += self.criterion(outputs, labels).item()
+
+                            # Calculate the accuracy
+                            ps = torch.exp(outputs)
+                            top_p, top_class = ps.topk(1, dim=1)
+                            equals = top_class == labels.view(*top_class.shape)
+                            accuracy += torch.mean(equals.type(torch.FloatTensor)).item()
+
+                    print(f'Epoch {epoch+1}/{epochs}.. '
+                          f'Train loss: {running_loss/print_every:.3f}.. '
+                          f'Validation loss: {validation_loss/len(valid_loader):.3f}.. '
+                          f'Validation accuracy: {accuracy/len(valid_loader):.3f}')
+                    
+                    running_loss = 0
+                    self.model.train()
 
     def evaluate(self, test_loader):
         # Eval logic here
