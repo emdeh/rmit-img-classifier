@@ -9,8 +9,12 @@ Classes:
 - DataLoader: A class to handle data loading and transformations.
 
 Methods:
-- __init__(self, data_dir, label_map_path): Initializes the DataLoader with the specified data directory and label mapping file path.
-- load_data(self): Loads the data, applies transformations, and returns data loaders.
+- __init__(self, data_dir, label_map_path): Initializes the DataLoader with 
+    the specified data directory and label mapping file path.
+
+- load_data(self): Loads the data, applies transformations, and returns data 
+    loaders.
+
 - load_label_mapping(self): Loads the mapping of class indices to class labels.
 
 Attributes:
@@ -108,7 +112,6 @@ class DataLoader:
         self.train_loader = TorchDataLoader(image_datasets['train'], batch_size=64, shuffle=True)
         self.valid_loader = TorchDataLoader(image_datasets['valid'], batch_size=64)
         self.test_loader = TorchDataLoader(image_datasets['test'], batch_size=64)
-        
         # Save the class_to_idx mapping
         self.class_to_idx = image_datasets['train'].class_to_idx
 

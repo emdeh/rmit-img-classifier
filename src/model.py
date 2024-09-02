@@ -5,8 +5,9 @@ import sys
 import os
 import torch
 import matplotlib.pyplot as plt
-import numpy as np
-from src.utils import ImageProcessor
+from torch import nn, optim
+from src.utils import ImageProcessor, get_device
+
 
 # Add the src directory to the Python path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -150,7 +151,6 @@ class ModelTrainer:
                           f'Train loss: {running_loss/print_every:.3f}.. '
                           f'Validation loss: {validation_loss/len(valid_loader):.3f}.. '
                           f'Validation accuracy: {accuracy/len(valid_loader):.3f}')
-                    
                     running_loss = 0
                     self.model.train()
 
@@ -170,23 +170,17 @@ class ModelTrainer:
             for inputs, labels in test_loader:
                 # Move inputs and labels to the appropriate device
                 inputs, labels = inputs.to(self.device), labels.to(self.device)
-                
                 # Forward pass
                 outputs = self.model(inputs)
-                
                 # Calculate probabilities
                 ps = torch.exp(outputs)
-                
                 # Get the top class
                 top_p, top_class = ps.topk(1, dim=1)
-                
                 # Compare predicted classes with true labels
                 equals = top_class == labels.view(*top_class.shape)
-                
                 # Calculate accuracy for the batch and accumulate
                 batch_accuracy = torch.mean(equals.type(torch.FloatTensor)).item()
                 test_accuracy += batch_accuracy * inputs.size(0)
-                
                 # Accumulate the number of samples
                 num_samples += inputs.size(0)
 
@@ -215,7 +209,7 @@ class ImageClassifier:
     def __init__(self, model, label_mapping):
         self.model = model
         self.model.class_to_idx = label_mapping
-    
+
     def predict(self, image_path, topk=5):
         """
         Predict the class (or classes) of an image using a trained deep learning model.
@@ -231,26 +225,26 @@ class ImageClassifier:
         # Process the image
         image_processor = ImageProcessor()
         image_tensor = image_processor.process_image(image_path).unsqueeze(0).float()
-        
+
         # Set model to evaluation mode
         self.model.eval()
-        
+
         # Disable gradients for inference
         with torch.no_grad():
             output = self.model.forward(image_tensor)
-        
+
         # Apply softmax to get probabilities
         probs = torch.softmax(output, dim=1)
-        
+
         # Get the top K probabilities and classes
         top_probs, top_indices = torch.topk(probs, topk)
         top_probs = top_probs.cpu().numpy().flatten()
         top_indices = top_indices.cpu().numpy().flatten()
-        
+
         # Convert indices to classes
         idx_to_class = {val: key for key, val in self.model.class_to_idx.items()}
         top_classes = [idx_to_class[idx] for idx in top_indices]
-        
+
         return top_probs, top_classes
 
     def sanity_check(self, image_paths, cat_to_name, topk=5):
@@ -264,7 +258,7 @@ class ImageClassifier:
         - topk (int): Number of top most likely classes to visualize.
         """
         image_processor = ImageProcessor()
-        
+
         # Determine the number of rows needed (each img has 1 row, 2 columns)
         n_images = len(image_paths)
         nrows = n_images
@@ -278,15 +272,15 @@ class ImageClassifier:
         for i, image_path in enumerate(image_paths):
             ax_img = axes[2*i]
             ax_bar = axes[2*i + 1]
-            
+
             # Make predictions
             probs, classes = self.predict(image_path, topk)
-            
+
             # Convert class indices to flower names
             flower_names = [cat_to_name[cls] for cls in classes]
-            
+
             # Display the image and prediction
             image_tensor = image_processor.process_image(image_path)
             image_processor.visualise_prediction(image_tensor, probs, classes, flower_names, ax_img, ax_bar)
-
+            
         plt.tight_layout
