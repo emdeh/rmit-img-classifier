@@ -18,7 +18,7 @@ Options:
 Example:
     $ python train.py --arch vgg16 --learning_rate 0.001 --hidden_units 4096 --epochs 5 --gpu
 """
-
+import datetime
 import argparse
 from torchvision import models
 from model import ModelTrainer
@@ -33,6 +33,9 @@ def confirm_options(args):
     print(f"Learning rate: {args.learning_rate}")
     print(f"Device: {args.device}")
     print(f"Data directory: {args.data_dir}")
+    
+    checkpoint_filename = args.checkpoint_name if args.checkpoint_name else "Default will be YYYYMMDD-HHMM-checkpoint.pth of when training completes."
+    print(f"Checkpoint filename: {checkpoint_filename}")
     
     confirm = input("\nAre these settings correct? (y/n): ").strip().lower()
     
@@ -60,7 +63,10 @@ def modify_options(args):
     args.learning_rate = float(learning_rate) if learning_rate else args.learning_rate
 
     args.device = input(f"Device (cpu or gpu) [Press enter for default: {args.device}]: ") or args.device
+    
     args.data_dir = input(f"Data directory [Press enter for default: {args.data_dir}]: ") or args.data_dir
+
+    args.checkpoint_name = input("Checkpoint filename: Default will be: YYYYMMDD-HHMM-checkpoint.pth:" ) or args.checkpoint_name
 
     confirm_options(args)
 
@@ -84,6 +90,9 @@ def main():
 
     # Data path
     parser.add_argument('--data_dir', type=str, default='data/flowers', help='Path to the dataset')
+
+    # Checkpoint name
+    parser.add_argument('--checkpoint_name', type=str, default=None, help='Name of the checkpoint file')
 
     # Parse arguments
     args = parser.parse_args()
@@ -111,12 +120,15 @@ def main():
     # Select the device
     trainer.device = get_device() if args.device == 'gpu' else trainer.device('cpu')
 
+    # Set user-specified filename, or default if None
+    checkpoint_filename = args.checkpoint_name if args.checkpoint_name else None
+
     # Train the model
     trainer.train(train_loader, valid_loader)
 
     # Save checkpoint
     checkpoint_manager = CheckpointManager()
-    checkpoint_manager.save_checkpoint(model, trainer.optimiser, trainer.epochs, 'checkpoint.pth')
+    checkpoint_manager.save_checkpoint(model, trainer.optimiser, trainer.epochs, checkpoint_filename)
 
 if __name__ == '__main__':
     main()

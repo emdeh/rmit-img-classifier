@@ -22,6 +22,8 @@ The best way to get the command line input into the scripts is with the
 argparse module(opens in a new tab) in the standard library. 
 You can also find a nice tutorial for argparse here(opens in a new tab).
 """
+import os
+import datetime
 import json
 import torch
 import matplotlib.pyplot as plt
@@ -180,7 +182,7 @@ class CheckpointManager:
         Loads the model checkpoint from the specified file and rebuilds the model.
     """
 
-    def save_checkpoint(self, model, optimiser, epochs, filepath='checkpoint.pth'):
+    def save_checkpoint(self, model, optimiser, epochs, filepath="YYYYMMDD-HHMM-checkpoint.pth"):
         """
         Saves the model checkpoint to the specified file.
 
@@ -195,6 +197,14 @@ class CheckpointManager:
         filepath : str
             The path where the checkpoint will be saved.
         """
+        if filepath is None:
+            # Generate a default filename with current date/time
+            current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M")
+            filepath = f"checkpoints/{current_time}-checkpoint.pth"
+
+        # Ensure the checkpoint directory exists
+        os.makedirs(os.path.dirname(filepath), exist_ok=True)
+
         # Attach the class_to_idx mapping to the model
         model.class_to_idx = model.class_to_idx
 
