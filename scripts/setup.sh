@@ -59,13 +59,19 @@ else
     conda env create -f env.yaml
 fi
 
-# Activate the environment
+# Activate the environment in the current shell
 echo "Activating conda environment..."
-source activate $ENV_NAME
+source $HOME/miniconda/bin/activate $ENV_NAME
+
+# Ensure the environment is activated
+if [[ "$CONDA_DEFAULT_ENV" != "$ENV_NAME" ]]; then
+    echo "Failed to activate conda environment '$ENV_NAME'. Exiting."
+    exit 1
+fi
 
 # Install any additional dependencies from requirements.txt
 echo "Installing dependencies from requirements.txt..."
 pip install -r requirements.txt
 
-# Inform the user that setup is complete
-echo "Setup is complete. To activate the environment, run: conda activate $ENV_NAME"
+# Inform the user that setup is complete and the environment is activated
+echo "Setup is complete. The environment '$ENV_NAME' is activated."
