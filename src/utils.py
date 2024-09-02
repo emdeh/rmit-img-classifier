@@ -22,9 +22,10 @@ The best way to get the command line input into the scripts is with the
 argparse module(opens in a new tab) in the standard library. 
 You can also find a nice tutorial for argparse here(opens in a new tab).
 """
-
+import json
 from torchvision import transforms, datasets
 from torch.utils.data import DataLoader as TorchDataLoader
+
 
 
 class DataLoader:
@@ -55,17 +56,19 @@ class DataLoader:
     load_data(self):
         Loads the data, applies transformations, and returns data loaders.
     """
-    def __init__(self, data_dir):
+    def __init__(self, data_dir, label_map_path):
         self.data_dir = data_dir # TODO: Will need a way to edit this if training remote vs locally. Was /home/ubuntu/flowers for remote
         self.train_dir = f"{data_dir}/train"
         self.valid_dir = f"{data_dir}/valid"
         self.test_dir = f"{data_dir}/test"
+        self.label_map_path = label_map_path
 
         # Placeholder for data loaders and class_to_idx
         self.train_loader = None
         self.valid_loader = None
         self.test_loader = None
         self.class_to_idx = None
+        self.cat_to_name = self.load_label_mapping()
 
         # Loaad the data
         self.load_data()
@@ -111,6 +114,13 @@ class DataLoader:
         
         # Save the class_to_idx mapping
         self.class_to_idx = image_datasets['train'].class_to_idx
+
+    def load_label_mapping(self):
+        """
+        Loads the mapping of class indices to class labels.
+        """
+        with open(self.label_map_path, 'r') as f:
+            return json.load(f)
 
 class ImageProcessor:
     """
