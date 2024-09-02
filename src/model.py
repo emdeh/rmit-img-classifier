@@ -53,9 +53,10 @@ class ModelTrainer:
         or evaluation.
     """
 
-    def __init__(self, model, lr=0.001):
+    def __init__(self, model, lr=0.001, hidden_units=4096):
         self.model = model
         self.device = get_device()
+        self.hidden_units = hidden_units
 
         # Call methods to prep model
         self.freeze_parameters()
@@ -81,11 +82,12 @@ class ModelTrainer:
         Define a new, untrained feed-forward network as a classifier that
         replaces the pre-trained model's classifier with a new one.
         """
+        input_size = self.model.classifier[0].in_features
         classifier = nn.Sequential(
-            nn.Linear(25088, 4096),
+            nn.Linear(input_size, self.hidden_units),
             nn.ReLU(),
             nn.Dropout(p=0.5),
-            nn.Linear(4096, 102),
+            nn.Linear(self.hidden_units, 102),
             nn.LogSoftmax(dim=1)
         )
 
