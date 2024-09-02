@@ -18,8 +18,8 @@ if [ ! -d "$HOME/miniconda" ]; then
     echo "Installing Miniconda..."
     wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
     # Install Miniconda silently and accept the EULA by using the `-b` option
-    sh Miniconda3-latest-Linux-x86_64.sh -b -p $HOME/miniconda
-    rm ~/sh Miniconda3-latest-Linux-x86_64.sh
+    bash Miniconda3-latest-Linux-x86_64.sh -b -p $HOME/miniconda
+    rm Miniconda3-latest-Linux-x86_64.sh
     source ~/.bashrc
     export PATH="$HOME/miniconda/bin:$PATH"
 fi
@@ -28,7 +28,7 @@ fi
 source "$HOME/miniconda/etc/profile.d/conda.sh"
 
 # Clone the repository
-if [ ! -d "$PROJECT_DIR" ]; thenc
+if [ ! -d "$PROJECT_DIR" ]; then
     echo "Cloning the repository..."
     git clone $REPO_URL $PROJECT_DIR
 fi
@@ -36,7 +36,7 @@ fi
 # Change to the project directory
 cd $PROJECT_DIR
 
-# Download dataset
+# Download and extract dataset
 echo "Creating data directory and downloading dataset..."
 mkdir -p $DATA_DIR
 wget $DATA_URL -O $DATA_DIR/flower_data.tar.gz
@@ -56,12 +56,6 @@ conda activate fnl-prj-img-class
 # Install any additional dependencies from requirements.txt
 #echo "Installing dependencies from requirements.txt..."
 #pip install -r requirements.txt
-
-# Download and extract dataset
-mkdir -p $DATA_DIR/flowers
-wget $DATA_URL -O $DATA_DIR/flower_data.tar.gz
-tar -xzvf $DATA_DIR/flower_data.tar.gz -C $DATA_DIR/flowers
-rm $DATA_DIR/flower_data.tar.gz
 
 # Create checkpoints directory
 mkdir -p $CHECKPOINT_DIR
