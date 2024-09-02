@@ -35,6 +35,15 @@ fi
 # Change to the project directory
 cd $PROJECT_DIR
 
+# Download dataset
+echo "Creating data directory and downloading dataset..."
+mkdir -p $DATA_DIR
+wget $DATA_URL -O $DATA_DIR/flower_data.tar.gz
+echo "Extracting dataset..."
+tar -xzvf $DATA_DIR/flower_data.tar.gz -C $DATA_DIR
+echo "Removing compressed dataset..."
+rm $DATA_DIR/flower_data.tar.gz
+
 # Create the conda environment from the env.yaml file
 echo "Creating conda environment from env.yaml..."
 conda env create -f env.yaml
@@ -44,8 +53,8 @@ echo "Activating conda environment..."
 conda activate fnl-prj-img-class
 
 # Install any additional dependencies from requirements.txt
-echo "Installing dependencies from requirements.txt..."
-pip install -r requirements.txt
+#echo "Installing dependencies from requirements.txt..."
+#pip install -r requirements.txt
 
 # Download and extract dataset
 mkdir -p $DATA_DIR/flowers
