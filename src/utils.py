@@ -158,38 +158,8 @@ class ImageProcessor:
     def visualise_prediction(self, model, topk=5):
         pass
 
-class CheckpointManager:
-    """
-    A class to manage the saving and loading of model checkpoints.
-
-    This class provides methods to save a model's state to a file and load it 
-    back into the model, enabling training to resume or evaluation at a later 
-    time.
-
-    Attributes
-    ----------
-    checkpoint_dir : str
-        Directory where checkpoints are saved or loaded from.
-
-    Methods
-    -------
-    save(self, model, save_path):
-        Saves the model's state to a checkpoint file.
-    
-    load(self, checkpoint_path):
-        Loads the model's state from a checkpoint file.
-    """
-
-    def __init__(self, checkpoint_dir):
-        pass
-
-    def save(self, model, save_path):
-        pass
-
-    def load(self, checkpoint_path):
-        pass
-
 class ModelTrainer:
+
     """
     A class to manage the training and evaluation of a deep learning model.
 
@@ -249,3 +219,63 @@ class ModelTrainer:
     def evaluate(self, test_loader):
         # Evaluation logic here
         pass
+
+    def train(self, train_loader, valid_loader, epochs=5):
+        # Training logic here
+        pass
+
+    def evaluate(self, test_loader):
+        # Eval logic here
+        pass
+
+class CheckpointManager:
+    """
+    A class to manage the saving and loading of model checkpoints.
+
+    This class provides methods to save a model's state to a file and load it 
+    back into the model, enabling training to resume or evaluation at a later 
+    time.
+
+    Attributes
+    ----------
+    checkpoint_dir : str
+        Directory where checkpoints are saved or loaded from.
+
+    Methods
+    -------
+    save(self, model, save_path):
+        Saves the model's state to a checkpoint file.
+    
+    load(self, checkpoint_path):
+        Loads the model's state from a checkpoint file.
+    """
+
+    def __init__(self, checkpoint_dir):
+        pass
+
+    def save(self, model, save_path):
+        pass
+
+    def load(self, checkpoint_path):
+        pass
+
+class ImageClassifier:
+    """
+    A class to manage the classification process using a trained model.
+
+    this will house the code equiv of:
+        # Load a pre-trained model
+        model = models.vgg16(pretrained=True)
+    """
+
+    def __init__(self, model, label_mapping):
+        self.model = model
+    
+    def classify(self, image):
+        """
+        Classifies an image using the model.
+        """
+        self.model.eval() # Set model to evaluation mode
+        with torch.no_grad():
+            output = self.model(image)
+        return output
