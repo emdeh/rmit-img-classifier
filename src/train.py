@@ -25,6 +25,40 @@ from model import ModelTrainer
 from data_loader import DataLoader
 from utils import CheckpointManager, get_device
 
+def confirm_options(args):
+    print("\nPlease confirm your training options:")
+    print(f"Model architecture: {args.arch}")
+    print(f"Number of hidden units: {args.hidden_units}")
+    print(f"Number of epochs: {args.epochs}")
+    print(f"Learning rate: {args.learning_rate}")
+    print(f"Device: {args.device}")
+    print(f"Data directory: {args.data_dir}")
+    
+    confirm = input("\nAre these settings correct? (y/n): ").strip().lower()
+    
+    if confirm == 'y':
+        print("Training the model with the specified options.\n"
+              "The next prompt will be confirm hardware availability.\n"
+              "Then the Epoch status and statistics will be displayed.")
+        return args
+    else:
+        # Optionally allow the user to re-enter options
+        print("Let's modify the options.")
+        return modify_options(args)
+
+def modify_options(args):
+    # Allow users to modify the settings
+    args.arch = input(f"Model architecture (vgg16 or densenet121) [Press enter for default: {args.arch}]: ") or args.arch
+    args.hidden_units = input(f"Number of hidden units [Press enter for default: {args.hidden_units}]: ") or args.hidden_units
+    args.epochs = input(f"Number of epochs [Press enter for default: {args.epochs}]: ") or args.epochs
+    args.learning_rate = input(f"Learning rate [Press enter for default: {args.learning_rate}]: ") or args.learning_rate
+    args.device = input(f"Device (cpu or gpu) [Press enter for default: {args.device}]: ") or args.device
+    args.data_dir = input(f"Data directory [Press enter for default: {args.data_dir}]: ") or args.data_dir
+    
+    confirm_options(args)
+
+    return args
+
 def main():
     parser = argparse.ArgumentParser(description='Train a neural network.')
 
@@ -47,9 +81,12 @@ def main():
     # Parse arguments
     args = parser.parse_args()
 
+    # Confirm options with the user
+    args = confirm_options(args)
+
     # Select model architecture
     if args.arch == 'vgg16':
-        model = model = models.vgg16(weights=models.VGG16_Weights.IMAGENET1K_V1)
+        model = models.vgg16(weights=models.VGG16_Weights.IMAGENET1K_V1)
     elif args.arch == 'densenet121':
         model = models.densenet121(weights=models.DenseNet121_Weights.IMAGENET1K_V1)
     else:
@@ -62,10 +99,10 @@ def main():
     train_loader, valid_loader, test_loader = data_loader.load_data()
 
     # Initialize the trainer
-    trainer = ModelTrainer(model, hidden_units=args.hidden_units, epochs=args.epochs, learning_rate=args.learning_rate, running_loss=args.running_loss)
+    trainer = ModelTrainer(model, hidden_units=args.hidden_units, epochs=args.epochs, learning_rate=args.learning_rate)
 
     # Select the device
-    device = get_device() if args.device == 'gpu' else trainer.device == 'cpu'
+    trainer.device = get_device() if args.device == 'gpu' else torch.device('cpu')
 
     # Train the model
     trainer.train(train_loader, valid_loader, epochs=args.epochs)
