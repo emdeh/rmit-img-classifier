@@ -201,6 +201,41 @@ class ImageProcessor:
         np_image = torch.tensor(np_image)
         
         return np_image
+    
+    def imshow(image, ax=None, title=None): # TODO This might not be required
+        """
+        Displays an image after converting it from a PyTorch tensor.
+
+        Args:
+        - image (torch.Tensor or np.ndarray): Image to display.
+        - ax (matplotlib.axes._axes.Axes, optional): Axes on which to display the image.
+        - title (str, optional): Title of the image.
+
+        Returns:
+        - ax (matplotlib.axes._axes.Axes): The axes with the image.
+        """
+        if ax is None:
+            fig, ax = plt.subplots()
+
+        # PyTorch tensors assume the color channel is the first dimension
+        # but matplotlib assumes it is the third dimension
+        if isinstance(image, torch.Tensor):
+            image = image.numpy().transpose((1, 2, 0))
+        
+        # Undo preprocessing
+        mean = np.array([0.485, 0.456, 0.406])
+        std = np.array([0.229, 0.224, 0.225])
+        image = std * image + mean
+        
+        # Image needs to be clipped between 0 and 1 or it looks like noise when displayed
+        image = np.clip(image, 0, 1)
+        
+        ax.imshow(image)
+        
+        if title:
+            ax.set_title(title)
+        
+        return ax
 
     def visualise_prediction(self, model, topk=5):
         pass
@@ -546,15 +581,90 @@ class ImageClassifer:
     def __init__(self, model, label_mapping):
         self.model = model
     
+    """
     def classify(self, image):
-        """
-        Classifies an image using the model.
-        """
+        
+        # Classifies an image using the model.
+        
         self.model.eval() # Set model to evaluation mode
         with torch.no_grad():
             output = self.model(image)
         return output
+    """
 
+    def predict(self, image_path, topk=5):
+        """
+        Predict the class (or classes) of an image using a trained deep learning model.
+        
+        Args:
+        - image_path (str): Path to the image file.
+        - topk (int): Number of top most likely classes to return.
+        
+        Returns:
+        - probs (list): Probabilities of the top K classes.
+        - classes (list): Corresponding classes for the top K probabilities.
+        """
+        # Process the image
+        image_processor = ImageProcessor()
+        np_image = image_processor.process_image(image_path)
+        
+        # Convert to PyTorch tensor and add batch dimension
+        image_tensor = torch.from_numpy(np_image).unsqueeze(0).float()
+        
+        # Set model to evaluation mode
+        self.model.eval()
+        
+        # Disable gradients for inference
+        with torch.no_grad():
+            output = self.model.forward(image_tensor)
+        
+        # Apply softmax to get probabilities
+        probs = torch.softmax(output, dim=1)
+        
+        # Get the top K probabilities and classes
+        top_probs, top_indices = torch.topk(probs, topk)
+        top_probs = top_probs.cpu().numpy().flatten()
+        top_indices = top_indices.cpu().numpy().flatten()
+        
+        # Convert indices to classes
+        idx_to_class = {val: key for key, val in self.model.class_to_idx.items()}
+        top_classes = [idx_to_class[idx] for idx in top_indices]
+        
+        return top_probs, top_classes
+
+    def sanity_check(self, image_path, model, cat_to_name, topk=5, ax_img=None, ax_bar=None):
+        """
+        Perform a sanity check by visualizing the model's top K predictions
+        alongside the actual image.
+
+        Args:
+        - image_path (str): Path to the image file.
+        - model (torch.nn.Module): Trained PyTorch model for prediction.
+        - cat_to_name (dict): Mapping from class indices to flower names.
+        - topk (int): Number of top most likely classes to visualize.
+        - ax_img: Matplotlib Axes for the image.
+        - ax_bar: Matplotlib Axes for the bar chart.
+        """
+            
+        # Make predictions
+        image_classifier = ImageClassifier(model)
+        probs, classes = image_classifier.predict(image_path, topk)
+        
+        # Convert class indices to flower names
+        flower_names = [cat_to_name[cls] for cls in classes]
+        
+        # Display the image
+        image_tensor = torch.tensor(self.process_image(image_path))
+        self.imshow(image_tensor, ax=ax_img)
+        ax_img.set_title(flower_names[0])  # Title with the top predicted flower name
+        
+        # Plot the probabilities
+        y_pos = np.arange(len(flower_names))
+        ax_bar.barh(y_pos, probs, align='center')
+        ax_bar.set_yticks(y_pos)
+        ax_bar.set_yticklabels(flower_names)
+        ax_bar.set_xlabel('Probability')
+        ax_bar.invert_yaxis()  # Invert y-axis so the highest probability is at the top
 
 """STANDALONE FUNCTIONS"""
 
