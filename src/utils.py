@@ -22,6 +22,7 @@ The best way to get the command line input into the scripts is with the
 argparse module(opens in a new tab) in the standard library. 
 You can also find a nice tutorial for argparse here(opens in a new tab).
 """
+import json
 import torch
 import matplotlib.pyplot as plt
 import numpy as np
@@ -309,3 +310,20 @@ def get_device():
         print("Using CPU.")
 
     return device
+
+
+def load_label_mapping(self):
+    """
+    Loads the mapping of class indices to class labels.
+    """
+    try:
+        with open(self.label_map_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except FileNotFoundError as exc:
+        raise FileNotFoundError(
+            f"Label mapping file not found at {self.label_map_path}"
+        ) from exc
+    except json.JSONDecodeError as exc:
+        raise ValueError(
+            f"Invalid JSON in label mapping file at {self.label_map_path}"
+        ) from exc

@@ -1,16 +1,12 @@
 '''
 This file is for functions and classes relating to the model.
 '''
-import sys
-import os
+
 import torch
 import matplotlib.pyplot as plt
 from torch import nn, optim
 import numpy as np
-from src.utils import ImageProcessor, get_device
-
-# Add the src directory to the Python path
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+from utils import ImageProcessor, get_device
 
 class ModelTrainer:
     """
@@ -283,6 +279,6 @@ class ImageClassifier:
 
             # Display the image and prediction
             image_tensor = image_processor.process_image(image_path)
-            image_processor.visualise_prediction(
-                image_tensor, probs, classes, flower_names, ax_img,
-                 ax_bar)
+            image_processor.visualise_prediction(image_tensor, probs,
+            classes, flower_names, ax_bar=None)
+            plt.show()

@@ -57,21 +57,19 @@ class DataLoader:
     load_data(self):
         Loads the data, applies transformations, and returns data loaders.
     """
-    def __init__(self, data_dir, label_map_path):
+    def __init__(self, data_dir):
         # TODO: Will need a way to edit this if training remote vs locally.
         # Was /home/ubuntu/flowers for remote
         self.data_dir = data_dir
         self.train_dir = f"{data_dir}/train"
         self.valid_dir = f"{data_dir}/valid"
         self.test_dir = f"{data_dir}/test"
-        self.label_map_path = label_map_path
 
         # Placeholder for data loaders and class_to_idx
         self.train_loader = None
         self.valid_loader = None
         self.test_loader = None
         self.class_to_idx = None
-        self.cat_to_name = self.load_label_mapping()
 
         # Loaad the data
         self.load_data()
@@ -114,21 +112,10 @@ class DataLoader:
         self.train_loader = TorchDataLoader(image_datasets['train'], batch_size=64, shuffle=True)
         self.valid_loader = TorchDataLoader(image_datasets['valid'], batch_size=64)
         self.test_loader = TorchDataLoader(image_datasets['test'], batch_size=64)
+
         # Save the class_to_idx mapping
         self.class_to_idx = image_datasets['train'].class_to_idx
 
-    def load_label_mapping(self):
-        """
-        Loads the mapping of class indices to class labels.
-        """
-        try:
-            with open(self.label_map_path, 'r', encoding='utf-8') as f:
-                return json.load(f)
-        except FileNotFoundError as exc:
-            raise FileNotFoundError(
-                f"Label mapping file not found at {self.label_map_path}"
-            ) from exc
-        except json.JSONDecodeError as exc:
-            raise ValueError(
-                f"Invalid JSON in label mapping file at {self.label_map_path}"
-            ) from exc
+        return self.train_loader, self.valid_loader, self.test_loader
+
+
