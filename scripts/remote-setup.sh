@@ -52,6 +52,8 @@ Author:
 
 """
 
+#!/bin/bash
+
 # Exit immediately if a command exits with a non-zero status
 set -e
 
@@ -72,15 +74,14 @@ CHECKPOINT_DIR="$PROJECT_DIR/checkpoints"
 if [ ! -d "$HOME/miniconda" ]; then
     echo "Installing Miniconda..."
     curl -O https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
-    # Install Miniconda silently and accept the EULA by using the `-b` option
     bash Miniconda3-latest-Linux-x86_64.sh -b
     rm Miniconda3-latest-Linux-x86_64.sh
     source ~/.bashrc
-    export PATH="$HOME/miniconda3/bin:$PATH"
+    export PATH="$HOME/miniconda/bin:$PATH"
 fi
 
 # Initialize conda
-source "$HOME/miniconda3/etc/profile.d/conda.sh"
+source "$HOME/miniconda/etc/profile.d/conda.sh"
 
 # Clone the repository
 if [ ! -d "$PROJECT_DIR" ]; then
@@ -106,6 +107,8 @@ conda env create -f env.yaml
 
 # Activate the environment
 echo "Activating conda environment..."
+source ~/.bashrc
+source "$HOME/miniconda/etc/profile.d/conda.sh"
 conda activate fnl-prj-img-class
 
 # Create checkpoints directory
