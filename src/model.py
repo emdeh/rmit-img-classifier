@@ -47,7 +47,7 @@ class ModelTrainer:
         or evaluation.
     """
 
-    def __init__(self, model, hidden_units=4096, epochs=5, learning_rate=0.001, running_loss=0, device='cpu'):
+    def __init__(self, model, data_loader, hidden_units=4096, epochs=5, learning_rate=0.001, running_loss=0, device='cpu'):
         self.model = model
         self.hidden_units = hidden_units
         self.epochs = epochs
@@ -66,6 +66,9 @@ class ModelTrainer:
         # Specify loss function and optimiser
         self.criterion = nn.NLLLoss()
         self.optimiser = optim.Adam(self.model.classifier.parameters(), lr=learning_rate)
+
+        # Set class_to_idx from the DataLoader instance
+        self.model.class_to_idx = data_loader.class_to_idx
 
     def freeze_parameters(self):
         """
@@ -92,7 +95,6 @@ class ModelTrainer:
         self.model.classifier = classifier
 
     def train(self, train_loader, valid_loader):
-        # Training logic here
         """
         Trains the model using the provided training and validation data loaders.
 
@@ -102,12 +104,7 @@ class ModelTrainer:
             DataLoader for the training dataset.
         valid_loader : torch.utils.data.DataLoader
             DataLoader for the validation dataset.
-        epochs : int
-            The number of epochs to train the model.
         """
-
-        # Set the class_to_idx attribute on the model using the training data loader
-        self.model.class_to_idx = train_loader.dataset.class_to_idx
         self.model.train()
 
         steps = 0
@@ -169,7 +166,7 @@ class ModelTrainer:
         test_accuracy = 0
         num_samples = 0
 
-                # Disable gradient computation as not required for validation
+        # Disable gradient computation as not required for validation
         with torch.no_grad():
             for inputs, labels in test_loader:
                 # Move inputs and labels to the appropriate device
@@ -232,7 +229,7 @@ class ImageClassifier:
         np_image = image_processor.process_image(image_path)
 
         # Convert to PyTorch tensor and add batch dimension
-        image_tensor = torch.from_numpy(np_image).unsqueeze(0).float()
+        image_tensor = torch.from_numpy(np_image).unsqueeze(0).float().to(self.device)
 
         # Move tensor to the same device as the model
         image_tensor = image_tensor.to(self.device)
@@ -253,7 +250,10 @@ class ImageClassifier:
         top_indices = top_indices.cpu().numpy().flatten()
 
         # Convert indices to classes, handle potential KeyError
-        idx_to_class = {val: key for key, val in self.model.class_to_idx.items()}
+        idx_to_class = {v: k for k, v in self.model.class_to_idx.items()}
+        print(f"idx_to_class: {idx_to_class}") # Debugging
+        print(f"top_indices: {top_indices}") # Debugging
+
         top_classes = [idx_to_class.get(idx, "Unknown") for idx in top_indices]
     
         return top_probs, top_classes
