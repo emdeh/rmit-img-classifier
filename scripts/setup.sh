@@ -1,5 +1,57 @@
 #!/bin/bash
 
+"""
+This script automates the setup of the image classifier project environment on a Lambda Labs instance.
+
+Usage:
+    source setup_env.sh
+
+The script performs the following tasks:
+1. Installs Miniconda if not already installed.
+2. Clones the image classifier project repository from GitHub.
+3. Downloads and extracts the required dataset.
+4. Creates a Conda environment using the 'env.yaml' file.
+5. Activates the Conda environment.
+6. Creates the necessary directory structure for storing checkpoints.
+
+To get started:
+1. Provision a remote instance and ssh to it.
+
+2. Run this command to retrieve this script:
+    wget https://raw.githubusercontent.com/emdeh/rmit-img-classifier/main/scripts/setup.sh
+
+3. Run this command to make it executable:
+    chmod +x setup.sh
+
+4. Then run this command to execute it:
+    source setup.sh
+
+**Important**:
+- To ensure the Conda environment remains activated in your current shell, it is improtant to run this script using the `source` command:
+  `source setup_env.sh`
+
+- After running the script, the environment will be activated.
+
+Directory Structure:
+- ~/img-classifier/: Root directory of the cloned project.
+- ~/img-classifier/data/: Directory where the dataset will be downloaded and extracted.
+- ~/img-classifier/checkpoints/: Directory for storing model checkpoints.
+
+Environment:
+- Miniconda is used to manage dependencies and environments.
+- The environment configuration is provided in the 'env.yaml' file.
+
+Dependencies:
+- The 'env.yaml' file should be present in the project directory for the environment setup.
+
+Output:
+- The script outputs messages to the console, indicating the progress of each task.
+
+Author:
+- [emdeh]
+
+"""
+
 # Exit immediately if a command exits with a non-zero status
 set -e
 
@@ -55,10 +107,6 @@ conda env create -f env.yaml
 # Activate the environment
 echo "Activating conda environment..."
 conda activate fnl-prj-img-class
-
-# Install any additional dependencies from requirements.txt
-#echo "Installing dependencies from requirements.txt..."
-#pip install -r requirements.txt
 
 # Create checkpoints directory
 mkdir -p $CHECKPOINT_DIR
