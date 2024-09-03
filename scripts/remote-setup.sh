@@ -4,7 +4,7 @@
 This script automates the setup of the image classifier project environment on a Lambda Labs instance.
 
 Usage:
-    source remote-remote-setup.shsh
+    source remote-setup.shsh
 
 The script performs the following tasks:
 1. Installs Miniconda if not already installed.
@@ -18,13 +18,13 @@ To get started:
 1. Provision a remote instance and ssh to it.
 
 2. Run this command to retrieve this script:
-    wget https://raw.githubusercontent.com/emdeh/rmit-img-classifier/main/scripts/remote-remote-setup.sh
+    wget https://raw.githubusercontent.com/emdeh/rmit-img-classifier/main/scripts/remote-setup.sh
 
 3. Run this command to make it executable:
-    chmod +x remote-remote-setup.sh
+    chmod +x remote-setup.sh
 
 4. Then run this command to execute it:
-    source remote-remote-setup.sh
+    source remote-setup.sh
 
 **Important**:
 - To ensure the Conda environment remains activated in your current shell, it is improtant to run this script using the `source` command:
