@@ -65,7 +65,7 @@ cd ~
 PROJECT_DIR="$HOME/img-classifier"
 REPO_URL="https://github.com/emdeh/rmit-img-classifier.git"
 DATA_URL="https://s3.amazonaws.com/content.udacity-data.com/nd089/flower_data.tar.gz"
-DATA_DIR="$PROJECT_DIR/data"
+DATA_DIR="$PROJECT_DIR/data/flowers"
 CHECKPOINT_DIR="$PROJECT_DIR/checkpoints"
 
 # Install Miniconda if not already installed
