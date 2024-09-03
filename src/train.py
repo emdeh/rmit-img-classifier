@@ -19,6 +19,7 @@ Example:
     $ python train.py --arch vgg16 --learning_rate 0.001 --hidden_units 4096 --epochs 5 --gpu
 """
 import argparse
+import torch
 from torchvision import models
 from torchvision.models.vgg import VGG16_Weights
 from model import ModelTrainer
@@ -118,7 +119,8 @@ def main():
     trainer = ModelTrainer(model, hidden_units=args.hidden_units, epochs=args.epochs, learning_rate=args.learning_rate)
 
     # Select the device
-    trainer.device = get_device() if args.device == 'gpu' else trainer.device('cpu')
+    trainer.device = get_device() if args.device == 'gpu' else torch.device('cpu')
+
 
     # Set user-specified filename, or default if None
     checkpoint_filename = args.checkpoint_name if args.checkpoint_name else None
