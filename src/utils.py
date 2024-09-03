@@ -289,7 +289,7 @@ class CheckpointManager:
                     "generally won't matter as much,\n"
                     "   and the model's weights are still loaded correctly.\n"
                     "\n"
-                    "A new optimiser has been reinitialised with default" 
+                    "A new optimiser has been reinitialised with default " 
                     "settings."
                 )
                 # Reinitialise optimiser if loading failed
