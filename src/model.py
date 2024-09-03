@@ -233,6 +233,9 @@ class ImageClassifier:
         # Convert to PyTorch tensor and add batch dimension
         image_tensor = torch.from_numpy(np_image).unsqueeze(0).float()
 
+        # Move tensor to the same device as the model
+        image_tensor = image_tensor.to(device)
+
         # Set model to evaluation mode
         self.model.eval()
 
