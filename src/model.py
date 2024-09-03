@@ -214,7 +214,7 @@ class ImageClassifier:
         self.model = model
         self.model.class_to_idx = label_mapping
 
-    def predict(self, image_path, topk=5):
+    def predict(self, image_path, topk=5, device='cpu'):
         """
         Predict the class (or classes) of an image using a trained deep learning model.
         
