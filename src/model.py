@@ -249,11 +249,16 @@ class ImageClassifier:
         top_probs = top_probs.cpu().numpy().flatten()
         top_indices = top_indices.cpu().numpy().flatten()
 
-        # Convert indices to classes, handle potential KeyError
+        # Convert indices to classes
         idx_to_class = {v: k for k, v in self.model.class_to_idx.items()}
-        print(f"idx_to_class: {idx_to_class}") # Debugging
-        print(f"top_indices: {top_indices}") # Debugging
+        print(f"idx_to_class: {idx_to_class}")  # Debugging
+        print(f"top_indices: {top_indices}")    # Debugging
 
-        top_classes = [idx_to_class.get(idx, "Unknown") for idx in top_indices]
-    
+        try:
+            top_classes = [idx_to_class[idx] for idx in top_indices]
+        except KeyError as e:
+            print(f"Error: Index {e} not found in idx_to_class mapping.")
+            raise
+
         return top_probs, top_classes
+

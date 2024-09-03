@@ -116,7 +116,7 @@ def main():
     train_loader, valid_loader, test_loader = data_loader.load_data()
 
     # Initialize the trainer
-    trainer = ModelTrainer(model, hidden_units=args.hidden_units, epochs=args.epochs, learning_rate=args.learning_rate)
+    trainer = ModelTrainer(model, data_loader=data_loader, hidden_units=args.hidden_units, epochs=args.epochs, learning_rate=args.learning_rate)
 
     # Select the device
     trainer.device = get_device() if args.device == 'gpu' else torch.device('cpu')
