@@ -6,6 +6,9 @@ set -e
 # Echo each command being executed
 set -x
 
+# cd to root directory
+cd ~
+
 # Define variables
 PROJECT_DIR="$HOME/img-classifier"
 REPO_URL="https://github.com/emdeh/rmit-img-classifier.git"
@@ -16,16 +19,16 @@ CHECKPOINT_DIR="$PROJECT_DIR/checkpoints"
 # Install Miniconda if not already installed
 if [ ! -d "$HOME/miniconda" ]; then
     echo "Installing Miniconda..."
-    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+    curl -O https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
     # Install Miniconda silently and accept the EULA by using the `-b` option
-    bash Miniconda3-latest-Linux-x86_64.sh -b -p $HOME/miniconda
+    bash Miniconda3-latest-Linux-x86_64.sh -b
     rm Miniconda3-latest-Linux-x86_64.sh
     source ~/.bashrc
-    export PATH="$HOME/miniconda/bin:$PATH"
+    export PATH="$HOME/miniconda3/bin:$PATH"
 fi
 
 # Initialize conda
-source "$HOME/miniconda/etc/profile.d/conda.sh"
+source "$HOME/miniconda3/etc/profile.d/conda.sh"
 
 # Clone the repository
 if [ ! -d "$PROJECT_DIR" ]; then
