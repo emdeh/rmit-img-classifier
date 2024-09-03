@@ -210,11 +210,12 @@ class ImageClassifier:
         Visualizes the predictions for a list of images.
     """
 
-    def __init__(self, model, label_mapping):
-        self.model = model
+    def __init__(self, model, label_mapping, device='cpu'):
+        self.device = torch.device(device)
+        self.model = model.to(self.device)
         self.model.class_to_idx = label_mapping
 
-    def predict(self, image_path, topk=5, device='cpu'):
+    def predict(self, image_path, topk=5):
         """
         Predict the class (or classes) of an image using a trained deep learning model.
         
@@ -234,7 +235,7 @@ class ImageClassifier:
         image_tensor = torch.from_numpy(np_image).unsqueeze(0).float()
 
         # Move tensor to the same device as the model
-        image_tensor = image_tensor.to(device)
+        image_tensor = image_tensor.to(self.device)
 
         # Set model to evaluation mode
         self.model.eval()
