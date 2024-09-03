@@ -204,7 +204,7 @@ class CheckpointManager:
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
 
         # Attach the class_to_idx mapping to the model
-        model.class_to_idx = model.class_to_idx
+        # model.class_to_idx = model.class_to_idx # I think this is redundant
 
         # Create the checkpoint dictionary
         checkpoint = {

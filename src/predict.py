@@ -96,6 +96,9 @@ def main():
     # Load Classifier
     classifier = ImageClassifier(model, cat_to_name)
 
+    print("Model's class_to_idx mapping:", model.class_to_idx) # Debugging
+    print("Loaded cat_to_name keys:", cat_to_name.keys()) # Debugging
+
     # Predict the class of the image
     probs, classes = classifier.predict(args.image_path, args.top_k)
 
