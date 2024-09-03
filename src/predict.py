@@ -100,7 +100,7 @@ def main():
     probs, classes = classifier.predict(args.image_path, args.top_k)
 
     # Map classes to names using data_loader's cat_to_name attribute
-    flower_names = [cat_to_name[cls] for cls in classes]
+    flower_names = [cat_to_name.get(cls, "Unknown") for cls in classes]
 
     print(f"Predicted classes: {flower_names}")
     print(f"Probabilities: {probs}")
