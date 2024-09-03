@@ -214,15 +214,7 @@ class ImageClassifier:
 
     def predict(self, image_path, topk=5):
         """
-        Predict the class (or classes) of an image using a trained deep learning model.
-        
-        Args:
-        - image_path (str): Path to the image file.
-        - topk (int): Number of top most likely classes to return.
-        
-        Returns:
-        - probs (list): Probabilities of the top K classes.
-        - classes (list): Corresponding classes for the top K probabilities.
+        a doc string
         """
         # Process the image
         image_processor = ImageProcessor()
@@ -230,9 +222,6 @@ class ImageClassifier:
 
         # Convert to PyTorch tensor and add batch dimension
         image_tensor = torch.from_numpy(np_image).unsqueeze(0).float().to(self.device)
-
-        # Move tensor to the same device as the model
-        image_tensor = image_tensor.to(self.device)
 
         # Set model to evaluation mode
         self.model.eval()
@@ -249,16 +238,19 @@ class ImageClassifier:
         top_probs = top_probs.cpu().numpy().flatten()
         top_indices = top_indices.cpu().numpy().flatten()
 
+        # Debugging outputs
+        print(f"Model output (before softmax): {output}")
+        print(f"Top indices: {top_indices}")
+        print(f"Available keys in class_to_idx: {self.model.class_to_idx.keys()}")
+
         # Convert indices to classes
         idx_to_class = {v: k for k, v in self.model.class_to_idx.items()}
-        print(f"idx_to_class: {idx_to_class}")  # Debugging
-        print(f"top_indices: {top_indices}")    # Debugging
-
         try:
             top_classes = [idx_to_class[idx] for idx in top_indices]
         except KeyError as e:
             print(f"Error: Index {e} not found in idx_to_class mapping.")
+            print(f"top_indices: {top_indices}")
+            print(f"idx_to_class mapping: {idx_to_class}")
             raise
 
         return top_probs, top_classes
-

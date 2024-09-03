@@ -264,6 +264,7 @@ class CheckpointManager:
 
         # Attach the class_to_idx mapping to the model
         model.class_to_idx = checkpoint['class_to_idx']
+        print(f"Loaded class_to_idx: {model.class_to_idx}")
 
         # Rebuild optimiser if needed
         optimiser = None
