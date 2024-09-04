@@ -7,10 +7,10 @@ def main(**kwargs):
     checkpoint_path = kwargs['checkpoint_path']
     top_k = kwargs['top_k']
     category_names_path = kwargs['category_names_path']
-    gpu = kwargs['gpu']
+    device_type = kwargs['device']
 
     # Load model from checkpoint
-    model_manager = ModelManager.load_checkpoint(checkpoint_path, gpu)
+    model_manager = ModelManager.load_checkpoint(checkpoint_path, device_type)
     
     # Load category names (if provided)
     category_names = None
@@ -37,35 +37,41 @@ def main(**kwargs):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description='Predict flower name from an image using a trained model.',
-        epilog='Example usage: python predict.py --image_path /path/to/image --checkpoint /path/to/checkpoint --top_k 5 --category_names cat_to_name.json --gpu'
+        epilog='''
+        Example usage:
+            python predict.py --image_path /path/to/image --checkpoint /path/to/checkpoint --top_k 3 --category_names /path/to/cat_to_name.json --device cpu
+        '''
     )
 
-    # Optional arguments
+    # Optional arguments with short flags
     parser.add_argument(
-        '--image_path',
+        '-i', '--image_path', 
         required=True,
-        help='Path to the input image file. Example: --image_path /path/to/flower/image.jpg'
+        help='Path to the input image file. Example: -i /path/to/flower/image.jpg'
     )
     parser.add_argument(
-        '--checkpoint',
+        '-c', '--checkpoint', 
         required=True,
-        help='Path to the model checkpoint file to load. Example: --checkpoint /path/to/checkpoint.pth'
+        help='Path to the model checkpoint file to load. Example: -c /path/to/checkpoint.pth'
     )
     parser.add_argument(
-        '--top_k',
+        '-k', '--top_k', 
         type=int, 
-        default=1, 
-        help='Return the top K most likely classes. Default is 1. Example: --top_k 5'
+        required=True,
+        help='Return the top K most likely classes. Example: -k 5'
     )
     parser.add_argument(
-        '--category_names',
+        '-n', '--category_names', 
+        required=True,
         type=str, 
-        help='Path to a JSON file mapping categories to flower names. Example: --category_names cat_to_name.json'
+        help='Path to a JSON file mapping categories to flower names. Example: -n /path/to/cat_to_name.json'
     )
     parser.add_argument(
-        '--gpu', 
-        action='store_true', 
-        help='Use GPU for inference if available. Add this flag to enable GPU usage. Example: --gpu'
+        '-d', '--device', 
+        required=True,
+        type=str, 
+        choices=['cpu', 'gpu'], 
+        help='Device to use for inference: "cpu" or "gpu". Example: -d gpu'
     )
 
     # Parse arguments
@@ -77,5 +83,5 @@ if __name__ == "__main__":
         checkpoint_path=args.checkpoint,
         top_k=args.top_k,
         category_names_path=args.category_names,
-        gpu=args.gpu
+        device=args.device
     )

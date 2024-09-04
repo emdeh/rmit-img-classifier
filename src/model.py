@@ -4,10 +4,20 @@ from torchvision import models
 import json
 
 class ModelManager:
-    def __init__(self, arch, hidden_units, learning_rate, class_to_idx, gpu):
-        self.device = torch.device("cuda" if gpu and torch.cuda.is_available() else "cpu")
-        print(f"Using device: {self.device}")
-        print("If you selected GPU, it does not appear available")
+    def __init__(self, arch, hidden_units, learning_rate, class_to_idx, device_type):
+        # Set the device based on device_type (cpu or gpu)
+        if device_type == 'gpu':
+            if torch.cuda.is_available():
+                self.device = torch.device("cuda")
+                print("GPU selected and available. Running on GPU.")
+            else:
+                self.device = torch.device("cpu")
+                print("GPU selected but not available. Falling back to CPU.")
+        else:
+            self.device = torch.device("cpu")
+            print("CPU explicitly selected. Running on CPU.")
+
+        # Model setup
         self.class_to_idx = class_to_idx  # Class index mapping
         self.model = self._create_model(arch, hidden_units)
         self.criterion = nn.NLLLoss()
@@ -114,14 +124,14 @@ class ModelManager:
         print("Checkpoint saved!")
 
     @classmethod
-    def load_checkpoint(cls, checkpoint_path, gpu):
+    def load_checkpoint(cls, checkpoint_path, device_type):
         # Allowlist for the Sequential class for safe unpickling with weights_only=True
         torch.serialization.add_safe_globals([set, nn.Sequential, nn.Linear, nn.ReLU, nn.Dropout, nn.LogSoftmax])
 
         # Load a checkpoint from a file
         checkpoint = torch.load(checkpoint_path, weights_only=True)
         class_to_idx = checkpoint['class_to_idx']
-        model_manager = cls('vgg16', 512, 0.001, class_to_idx, gpu)
+        model_manager = cls('vgg16', 512, 0.001, class_to_idx, device_type)
         model_manager.model.load_state_dict(checkpoint['state_dict'])
         return model_manager
 
