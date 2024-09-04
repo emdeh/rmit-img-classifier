@@ -69,6 +69,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '-d', '--device', 
         required=True,
+        default='gpu',
         type=str, 
         choices=['cpu', 'gpu'], 
         help='Device to use for inference: "cpu" or "gpu". Example: -d gpu'

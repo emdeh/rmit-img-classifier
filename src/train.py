@@ -39,7 +39,6 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         '-a', '--arch', 
-        required=True,
         default='vgg16', 
         choices=['vgg16', 'resnet50'], 
         help='Model architecture (vgg16 or resnet50). Example: -a vgg16 (default)'
@@ -47,27 +46,23 @@ if __name__ == "__main__":
     parser.add_argument(
         '-l', '--learning_rate', 
         type=float, 
-        required=True,
         default=0.002, 
         help='Learning rate. Example: -l 0.002 (default)'
     )
     parser.add_argument(
         '-u', '--hidden_units', 
         type=int, 
-        required=True, 
         default=4096,
         help='Number of hidden units.  Example: -u 4096 (dfault)'
     )
     parser.add_argument(
         '-e', '--epochs', 
         type=int, 
-        required=True, 
         default=5,
         help='Number of training epochs. Example: -e 5 (default)'
     )
     parser.add_argument(
-        '-g', '--device', 
-        required=True,
+        '-d', '--device', 
         default='gpu',
         type=str, 
         choices=['cpu', 'gpu'], 

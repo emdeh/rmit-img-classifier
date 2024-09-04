@@ -13,12 +13,14 @@ To setup the environment, run one of the setup scripts that is appropriate for y
 
 To train the image classifier, run the following command:
 ```bash
-python train.py --data_dir <path_to_data_directory> --save_dir <path_to_save_directory> --arch <model_architecture> --learning_rate <learning_rate> --hidden_units <hidden_units> --epochs <num_epochs> --gpu
+        Example usage:
+            python train.py --data_dir /path/to/data --save_dir /path/to/save_dir --arch resnet50 --learning_rate 0.001 --hidden_units 512 --epochs 20 --device cpu
 ```
 
 To predict the class of an image using the trained model, run the following command:
 ```bash
-python predict.py --image_path <path_to_image> --checkpoint <path_to_checkpoint> --top_k <num_top_predictions> --category_names <path_to_category_names> --gpu
+        Example usage:
+            python predict.py --image_path /path/to/image --checkpoint /path/to/checkpoint --top_k 3 --category_names /path/to/cat_to_name.json --device cpu
 ```
 
 ### More information
