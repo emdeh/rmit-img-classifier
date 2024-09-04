@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # Variables
+ENV_NAME="img-classifier"
 REPO_URL="https://github.com/emdeh/rmit-img-classifier.git"
 DATA_URL="https://s3.amazonaws.com/content.udacity-data.com/nd089/flower_data.tar.gz"
 MINICONDA_URL="https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh"
@@ -62,7 +63,7 @@ if [ -f "$ENV_FILE" ]; then
     echo "Creating Conda environment from $ENV_FILE..."
     conda env create -f $ENV_FILE
     echo "Activating Conda environment..."
-    source activate rmit-img-classifier
+    conda activate $ENV_NAME
 else
     echo "$ENV_FILE not found. Please ensure the env.yaml file is present in the project directory."
     exit 1

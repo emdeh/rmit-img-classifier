@@ -48,21 +48,21 @@ class ModelManager:
 
                 # Move input and label tensors to the appropriate device (GPU/CPU)
                 inputs, labels = inputs.to(self.device), labels.to(self.device)
-                print("Debug: inputs and labels moved to device")
+                #print("Debug: inputs and labels moved to device")
 
                 # Zero the gradients
                 self.optimizer.zero_grad()
-                print("Debug: gradients zeroed")
+                #print("Debug: gradients zeroed")
 
                 # Forward pass
                 outputs = self.model(inputs)
                 loss = self.criterion(outputs, labels)
-                print("Debug: forward pass")
+                #print("Debug: forward pass")
 
                 # Backward pass and optimize
                 loss.backward()
                 self.optimizer.step()
-                print("Debug: backward pass and optimise")
+                #print("Debug: backward pass and optimise")
 
                 running_loss += loss.item()
 
@@ -72,7 +72,7 @@ class ModelManager:
                     self.model.eval()
                     validation_loss = 0
                     accuracy = 0
-                    print("Debug: in validation if statement...")
+                    #print("Debug: in validation if statement...")
 
                     # Disable gradient calculation for validation
                     with torch.no_grad():
@@ -87,7 +87,7 @@ class ModelManager:
                             top_p, top_class = ps.topk(1, dim=1)
                             equals = top_class == labels.view(*top_class.shape)
                             accuracy += torch.mean(equals.type(torch.FloatTensor)).item()
-                            print("Debug: Calculated accuracy")
+                            #print("Debug: Calculated accuracy")
 
                     # Print statistics
                     print(f'Epoch {epoch+1}/{epochs}.. '
