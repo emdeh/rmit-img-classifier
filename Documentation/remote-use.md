@@ -9,6 +9,8 @@ To run training and prediction on a remote GPU, you can follow these steps:
 wget <insert-PATH>
 ```
 
+>> Note there is no need to clone the repo, this will be done for you.
+
 2. Make the script executable
 ```bash
 chmod +x setup.sh
