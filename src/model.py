@@ -14,7 +14,7 @@ class ModelManager:
 
     def _create_model(self, arch, hidden_units):
         # Load a pre-trained model
-        model = getattr(models, arch)(pretrained=True)
+        model = getattr(models, arch)(weights='DEFAULT')
         
         # Freeze parameters so we don't backpropagate through them
         for param in model.parameters():
@@ -33,7 +33,9 @@ class ModelManager:
         return model
 
     def train(self, dataloaders, epochs):
+        print("Training commencing...")
         for epoch in range(epochs):
+            print(f"Commencing epoch: {epoch+1}")
             self.model.train()
             running_loss = 0
             for inputs, labels in dataloaders['train']:
