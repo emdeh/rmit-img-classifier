@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Variables
-ENV_NAME="img-classifier"
+ENV_NAME="remote-env"
 REPO_URL="https://github.com/emdeh/rmit-img-classifier.git"
 DATA_URL="https://s3.amazonaws.com/content.udacity-data.com/nd089/flower_data.tar.gz"
 MINICONDA_URL="https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh"
@@ -62,6 +62,8 @@ fi
 # Create and activate the Conda environment
 if [ -f "$ENV_FILE" ]; then
     echo "Creating Conda environment from $ENV_FILE..."
+    conda init
+    source ~/.bashrc
     conda env create -f $ENV_FILE
     echo "Activating Conda environment..."
     conda activate $ENV_NAME
