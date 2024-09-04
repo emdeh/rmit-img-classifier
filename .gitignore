@@ -102,9 +102,12 @@ ENV/
 
 .github/**
 
-# Ignore the flowers directory and all files within it.
+# Ignore data dir and dataset within it
 flowers/
 data/
+
+# Ignore checkpoints
+checkpoints/
 
 # Ignore .pth files
 *.pth
