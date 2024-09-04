@@ -6,26 +6,31 @@ import json
 class ModelManager:
     def __init__(self, arch, hidden_units, learning_rate, class_to_idx, gpu):
         self.device = torch.device("cuda" if gpu and torch.cuda.is_available() else "cpu")
-        self.model = self._create_model(arch, hidden_units)
+        self.class_to_idx = class_to_idx  # Assign class_to_idx
+        self.model = self._create_model(arch, hidden_units)  # Create model after class_to_idx is set
         self.criterion = nn.NLLLoss()
         self.optimizer = optim.Adam(self.model.classifier.parameters(), lr=learning_rate)
-        self.model.class_to_idx = class_to_idx
         self.model.to(self.device)
 
     def _create_model(self, arch, hidden_units):
+        # Load a pre-trained model
         model = getattr(models, arch)(pretrained=True)
+        
+        # Freeze parameters so we don't backpropagate through them
         for param in model.parameters():
             param.requires_grad = False
 
-        # Create classifier
+        # Create a new classifier
         classifier = nn.Sequential(
             nn.Linear(model.classifier[0].in_features, hidden_units),
             nn.ReLU(),
-            nn.Dropout(0.2),
-            nn.Linear(hidden_units, len(self.model.class_to_idx)),
+            nn.Dropout(0.5),
+            nn.Linear(hidden_units, len(self.class_to_idx)),  # Use self.class_to_idx instead of self.model.class_to_idx
             nn.LogSoftmax(dim=1)
         )
+
         model.classifier = classifier
+
         return model
 
     def train(self, dataloaders, epochs):
@@ -46,7 +51,7 @@ class ModelManager:
     def save_checkpoint(self, save_dir):
         checkpoint = {
             'state_dict': self.model.state_dict(),
-            'class_to_idx': self.model.class_to_idx
+            'class_to_idx': self.class_to_idx
         }
         torch.save(checkpoint, f"{save_dir}/checkpoint.pth")
 
