@@ -5,7 +5,7 @@ ENV_NAME="img-classifier"
 REPO_URL="https://github.com/emdeh/rmit-img-classifier.git"
 DATA_URL="https://s3.amazonaws.com/content.udacity-data.com/nd089/flower_data.tar.gz"
 MINICONDA_URL="https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh"
-PROJECT_DIR="$HOME/rmit-img-classifier"
+PROJECT_DIR="$HOME/img-classifier"
 CHECKPOINT_DIR="$PROJECT_DIR/checkpoints"
 DATA_DIR="$PROJECT_DIR/data"
 ENV_FILE="$PROJECT_DIR/env.yaml"
@@ -19,6 +19,7 @@ if ! command -v conda &> /dev/null; then
     curl -O $MINICONDA_URL
     bash Miniconda3-latest-Linux-x86_64.sh -b -p $HOME/miniconda
     export PATH="$HOME/miniconda/bin:$PATH"
+    rm $HOME/Miniconda3-latest-Linux-x86_64.sh
     echo "Miniconda installed."
 else
     echo "Miniconda is already installed."

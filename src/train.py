@@ -28,9 +28,9 @@ if __name__ == "__main__":
 
     # Required arguments with short flags
     parser.add_argument(
-        '-d', '--data_dir', 
+        '-dir', '--data_dir', 
         required=True, 
-        help='Directory of training data. Example: -d /path/to/data'
+        help='Directory of training data. Example: -dir /path/to/data'
     )
     parser.add_argument(
         '-s', '--save_dir', 
@@ -64,8 +64,8 @@ if __name__ == "__main__":
     parser.add_argument(
         '-d', '--device', 
         default='gpu',
-        type=str, 
-        choices=['cpu', 'gpu'], 
+        type=str,
+        choices=['cpu', 'gpu'],
         help='Device to use for training: "cpu" or "gpu". Example: -g gpu (default)'
     )
 
