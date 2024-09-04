@@ -33,3 +33,4 @@ Image-Classifier/
 4. Jupyter notebook reqs
 5. Jupyter notebook doc
 6. Other doco
+7. Fix setup scripts (auto activate and output alignment)
