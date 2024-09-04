@@ -19,6 +19,9 @@ class ModelManager:
 
         # Model setup
         self.class_to_idx = class_to_idx  # Class index mapping
+        self.arch = arch
+        self.hidden_units = hidden_units
+        self.learning_rate = learning_rate
         self.model = self._create_model(arch, hidden_units)
         self.criterion = nn.NLLLoss()
         self.optimizer = optim.Adam(self.model.classifier.parameters(), lr=learning_rate)
@@ -118,6 +121,8 @@ class ModelManager:
             'state_dict': self.model.state_dict(),
             'class_to_idx': self.class_to_idx,
             'architecture': self.model.__class__.__name__,
+            'hidden_units': self.hidden_units,
+            'learning_rate': self.learning_rate,
             'classifier': self.model.classifier
         }
         torch.save(checkpoint, f"{save_dir}/checkpoint.pth")
@@ -131,7 +136,12 @@ class ModelManager:
         # Load a checkpoint from a file
         checkpoint = torch.load(checkpoint_path, weights_only=True)
         class_to_idx = checkpoint['class_to_idx']
-        model_manager = cls('vgg16', 512, 0.001, class_to_idx, device_type)
+        arch = checkpoint.get('architecture', 'vgg16')  # Default to vgg16 if not found
+        hidden_units = checkpoint.get('hidden_units', 512)  # Default to 512 if not found
+        learning_rate = checkpoint.get('learning_rate', 0.001)  # Default to 0.001 if not found
+        
+        # Create a new ModelManager instance with the saved hyperparameters
+        model_manager = cls(arch, hidden_units, learning_rate, class_to_idx, device_type)
         model_manager.model.load_state_dict(checkpoint['state_dict'])
         return model_manager
 
