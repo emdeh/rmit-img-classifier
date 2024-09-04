@@ -115,8 +115,11 @@ class ModelManager:
 
     @classmethod
     def load_checkpoint(cls, checkpoint_path, gpu):
+        # Allowlist for the Sequential class for safe unpickling with weights_only=True
+        torch.serialization.add_safe_globals([set, nn.Sequential, nn.Linear, nn.ReLU, nn.Dropout, nn.LogSoftmax])
+
         # Load a checkpoint from a file
-        checkpoint = torch.load(checkpoint_path, weights_only=False)
+        checkpoint = torch.load(checkpoint_path, weights_only=True)
         class_to_idx = checkpoint['class_to_idx']
         model_manager = cls('vgg16', 512, 0.001, class_to_idx, gpu)
         model_manager.model.load_state_dict(checkpoint['state_dict'])
