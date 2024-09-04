@@ -99,8 +99,10 @@ class ModelManager:
 
                     # Set model back to training mode
                     self.model.train()
+        print("Training complete!")
 
     def save_checkpoint(self, save_dir):
+        print(f"Saving checkpoint to: {save_dir}")
         # Save checkpoint with necessary metadata
         checkpoint = {
             'state_dict': self.model.state_dict(),
@@ -109,6 +111,7 @@ class ModelManager:
             'classifier': self.model.classifier
         }
         torch.save(checkpoint, f"{save_dir}/checkpoint.pth")
+        print("Checkpoint saved!")
 
     @classmethod
     def load_checkpoint(cls, checkpoint_path, gpu):
