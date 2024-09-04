@@ -6,6 +6,8 @@ import json
 class ModelManager:
     def __init__(self, arch, hidden_units, learning_rate, class_to_idx, gpu):
         self.device = torch.device("cuda" if gpu and torch.cuda.is_available() else "cpu")
+        print(f"Using device: {self.device}")
+        print("If you selected GPU, it does not appear available")
         self.class_to_idx = class_to_idx  # Class index mapping
         self.model = self._create_model(arch, hidden_units)
         self.criterion = nn.NLLLoss()
@@ -30,8 +32,8 @@ class ModelManager:
         )
 
         model.classifier = classifier
-        print(f"Classifier model loaded with following hyperparameters:\n"
-              "{classifier}\n")
+        print("Classifier model loaded with following hyperparameters:")
+        print(f"{classifier}")
         return model
 
     def train(self, dataloaders, epochs):
