@@ -2,13 +2,13 @@ import argparse
 from model import ModelManager
 from utils import DataLoader
 
-def main(data_dir, save_dir, arch, learning_rate, hidden_units, epochs, gpu):
+def main(data_dir, save_dir, arch, learning_rate, hidden_units, epochs, device_type):
     # Initialize DataLoader class
     data_loader = DataLoader(data_dir)
     dataloaders, class_to_idx = data_loader.load_data()
 
     # Initialize ModelManager class
-    model_manager = ModelManager(arch, hidden_units, learning_rate, class_to_idx, gpu)
+    model_manager = ModelManager(arch, hidden_units, learning_rate, class_to_idx, device_type)
 
     # Train the model
     model_manager.train(dataloaders, epochs)
@@ -18,15 +18,72 @@ def main(data_dir, save_dir, arch, learning_rate, hidden_units, epochs, gpu):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Train a new network on a dataset.')
-    parser.add_argument('data_dir', help='Directory of training data')
-    parser.add_argument('--save_dir', default='checkpoint', help='Directory to save checkpoint')
-    parser.add_argument('--arch', default='vgg16', help='Model architecture')
-    parser.add_argument('--learning_rate', type=float, default=0.001, help='Learning rate')
-    parser.add_argument('--hidden_units', type=int, default=512, help='Number of hidden units')
-    parser.add_argument('--epochs', type=int, default=20, help='Number of training epochs')
-    parser.add_argument('--gpu', action='store_true', help='Use GPU if available')
+    parser = argparse.ArgumentParser(
+        description='Train a new network on a dataset.',
+        epilog='''
+        Example usage:
+            python train.py --data_dir /path/to/data --save_dir /path/to/save_dir --arch resnet50 --learning_rate 0.001 --hidden_units 512 --epochs 20 --device cpu
+        '''
+    )
 
+    # Required arguments with short flags
+    parser.add_argument(
+        '-d', '--data_dir', 
+        required=True, 
+        help='Directory of training data. Example: -d /path/to/data'
+    )
+    parser.add_argument(
+        '-s', '--save_dir', 
+        required=True, 
+        help='Directory to save checkpoint. Example: -s /path/to/save_dir'
+    )
+    parser.add_argument(
+        '-a', '--arch', 
+        required=True,
+        default='vgg16', 
+        choices=['vgg16', 'resnet50'], 
+        help='Model architecture (vgg16 or resnet50). Example: -a vgg16 (default)'
+    )
+    parser.add_argument(
+        '-l', '--learning_rate', 
+        type=float, 
+        required=True,
+        default=0.002, 
+        help='Learning rate. Example: -l 0.002 (default)'
+    )
+    parser.add_argument(
+        '-u', '--hidden_units', 
+        type=int, 
+        required=True, 
+        default=4096,
+        help='Number of hidden units.  Example: -u 4096 (dfault)'
+    )
+    parser.add_argument(
+        '-e', '--epochs', 
+        type=int, 
+        required=True, 
+        default=5,
+        help='Number of training epochs. Example: -e 5 (default)'
+    )
+    parser.add_argument(
+        '-g', '--device', 
+        required=True,
+        default='gpu',
+        type=str, 
+        choices=['cpu', 'gpu'], 
+        help='Device to use for training: "cpu" or "gpu". Example: -g gpu (default)'
+    )
+
+    # Parse arguments
     args = parser.parse_args()
 
-    main(args.data_dir, args.save_dir, args.arch, args.learning_rate, args.hidden_units, args.epochs, args.gpu)
+    # Call main function
+    main(
+        data_dir=args.data_dir,
+        save_dir=args.save_dir,
+        arch=args.arch,
+        learning_rate=args.learning_rate,
+        hidden_units=args.hidden_units,
+        epochs=args.epochs,
+        device_type=args.device
+    )
