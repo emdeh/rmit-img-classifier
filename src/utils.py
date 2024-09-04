@@ -38,7 +38,7 @@ class DataLoader:
             for x in ['train', 'valid']
         }
         dataloaders = {
-            x: torch.utils.data.DataLoader(image_datasets[x], batch_size=64, shuffle=True)
+            x: torch.utils.data.DataLoader(image_datasets[x], batch_size=64, shuffle=True, num_workers=4, pin_memory=True)
             for x in ['train', 'valid']
         }
         print("Data loaded")

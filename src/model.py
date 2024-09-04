@@ -30,6 +30,8 @@ class ModelManager:
         )
 
         model.classifier = classifier
+        print(f"Classifier model loaded with following hyperparameters:\n"
+              "{classifier}\n")
         return model
 
     def train(self, dataloaders, epochs):
