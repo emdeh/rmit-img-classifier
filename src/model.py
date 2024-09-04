@@ -36,22 +36,69 @@ class ModelManager:
         print(f"{classifier}")
         return model
 
-    def train(self, dataloaders, epochs):
+    def train(self, dataloaders, epochs, print_every=5):
         print("Training commencing...")
+        steps = 0
+        running_loss = 0
+
         for epoch in range(epochs):
             print(f"Commencing epoch: {epoch+1}")
-            self.model.train()
-            running_loss = 0
             for inputs, labels in dataloaders['train']:
+                steps += 1
+
+                # Move input and label tensors to the appropriate device (GPU/CPU)
                 inputs, labels = inputs.to(self.device), labels.to(self.device)
+                print("Debug: inputs and labels moved to device")
+
+                # Zero the gradients
                 self.optimizer.zero_grad()
+                print("Debug: gradients zeroed")
+
+                # Forward pass
                 outputs = self.model(inputs)
                 loss = self.criterion(outputs, labels)
+                print("Debug: forward pass")
+
+                # Backward pass and optimize
                 loss.backward()
                 self.optimizer.step()
+                print("Debug: backward pass and optimise")
+
                 running_loss += loss.item()
 
-            print(f"Epoch {epoch+1}/{epochs}, Loss: {running_loss/len(dataloaders['train'])}")
+                # Perform validation every `print_every` steps
+                if steps % print_every == 0:
+                    # Set model to evaluation mode
+                    self.model.eval()
+                    validation_loss = 0
+                    accuracy = 0
+                    print("Debug: in validation if statement...")
+
+                    # Disable gradient calculation for validation
+                    with torch.no_grad():
+                        for inputs, labels in dataloaders['valid']:
+                            inputs, labels = inputs.to(self.device), labels.to(self.device)
+                            outputs = self.model(inputs)
+                            loss = self.criterion(outputs, labels)
+                            validation_loss += loss.item()
+
+                            # Calculate accuracy
+                            ps = torch.exp(outputs)
+                            top_p, top_class = ps.topk(1, dim=1)
+                            equals = top_class == labels.view(*top_class.shape)
+                            accuracy += torch.mean(equals.type(torch.FloatTensor)).item()
+                            print("Debug: Calculated accuracy")
+
+                    # Print statistics
+                    print(f'Epoch {epoch+1}/{epochs}.. '
+                          f'Train loss: {running_loss/print_every:.3f}.. '
+                          f'Validation loss: {validation_loss/len(dataloaders["valid"]):.3f}.. '
+                          f'Validation accuracy: {accuracy/len(dataloaders["valid"]):.3f}')
+                    
+                    running_loss = 0
+
+                    # Set model back to training mode
+                    self.model.train()
 
     def save_checkpoint(self, save_dir):
         # Save checkpoint with necessary metadata
