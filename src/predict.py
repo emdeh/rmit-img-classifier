@@ -56,19 +56,18 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         '-k', '--top_k', 
-        type=int, 
-        required=True,
-        help='Return the top K most likely classes. Example: -k 5'
+        type=int,
+        default=5,
+        help='Return the top K most likely classes. Example: -k 5 (default)'
     )
     parser.add_argument(
         '-n', '--category_names', 
         required=True,
-        type=str, 
+        type=str,
         help='Path to a JSON file mapping categories to flower names. Example: -n /path/to/cat_to_name.json'
     )
     parser.add_argument(
         '-d', '--device', 
-        required=True,
         default='gpu',
         type=str, 
         choices=['cpu', 'gpu'], 

@@ -53,7 +53,7 @@ if __name__ == "__main__":
         '-u', '--hidden_units', 
         type=int, 
         default=4096,
-        help='Number of hidden units.  Example: -u 4096 (dfault)'
+        help='Number of hidden units.  Example: -u 4096 (default)'
     )
     parser.add_argument(
         '-e', '--epochs', 
