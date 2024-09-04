@@ -6,8 +6,8 @@ import json
 class ModelManager:
     def __init__(self, arch, hidden_units, learning_rate, class_to_idx, gpu):
         self.device = torch.device("cuda" if gpu and torch.cuda.is_available() else "cpu")
-        self.class_to_idx = class_to_idx  # Assign class_to_idx
-        self.model = self._create_model(arch, hidden_units)  # Create model after class_to_idx is set
+        self.class_to_idx = class_to_idx  # Class index mapping
+        self.model = self._create_model(arch, hidden_units)
         self.criterion = nn.NLLLoss()
         self.optimizer = optim.Adam(self.model.classifier.parameters(), lr=learning_rate)
         self.model.to(self.device)
@@ -24,13 +24,12 @@ class ModelManager:
         classifier = nn.Sequential(
             nn.Linear(model.classifier[0].in_features, hidden_units),
             nn.ReLU(),
-            nn.Dropout(0.5),
-            nn.Linear(hidden_units, len(self.class_to_idx)),  # Use self.class_to_idx instead of self.model.class_to_idx
+            nn.Dropout(0.2),
+            nn.Linear(hidden_units, len(self.class_to_idx)),  # Use self.class_to_idx for size
             nn.LogSoftmax(dim=1)
         )
 
         model.classifier = classifier
-
         return model
 
     def train(self, dataloaders, epochs):
@@ -49,14 +48,18 @@ class ModelManager:
             print(f"Epoch {epoch+1}/{epochs}, Loss: {running_loss/len(dataloaders['train'])}")
 
     def save_checkpoint(self, save_dir):
+        # Save checkpoint with necessary metadata
         checkpoint = {
             'state_dict': self.model.state_dict(),
-            'class_to_idx': self.class_to_idx
+            'class_to_idx': self.class_to_idx,
+            'architecture': self.model.__class__.__name__,
+            'classifier': self.model.classifier
         }
         torch.save(checkpoint, f"{save_dir}/checkpoint.pth")
 
     @classmethod
     def load_checkpoint(cls, checkpoint_path, gpu):
+        # Load a checkpoint from a file
         checkpoint = torch.load(checkpoint_path)
         class_to_idx = checkpoint['class_to_idx']
         model_manager = cls('vgg16', 512, 0.001, class_to_idx, gpu)
@@ -72,5 +75,15 @@ class ModelManager:
             return probs.exp().cpu().numpy()[0], classes.cpu().numpy()[0]
 
     def load_category_names(self, json_file):
+        # Load mapping from class index to category names
         with open(json_file, 'r') as f:
             return json.load(f)
+
+    def map_class_to_name(self, class_indices, category_names):
+        # Invert class_to_idx to get idx_to_class mapping
+        idx_to_class = {v: k for k, v in self.class_to_idx.items()}
+        
+        # Map the predicted class indices to the actual category names
+        class_names = [category_names[idx_to_class[i]] for i in class_indices]
+        
+        return class_names
