@@ -8,7 +8,7 @@ MINICONDA_URL="https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_6
 PROJECT_DIR="$HOME/img-classifier"
 CHECKPOINT_DIR="$PROJECT_DIR/checkpoints"
 DATA_DIR="$PROJECT_DIR/data"
-ENV_FILE="$PROJECT_DIR/env.yaml"
+ENV_FILE="$PROJECT_DIR/remote-env.yaml"
 
 # Move to the user's home directory
 cd $HOME

@@ -7,11 +7,11 @@ class DataLoader:
         self.data_dir = data_dir
 
     def load_data(self):
-        train_dir = f"{self.data_dir}/flowers/train"
-        valid_dir = f"{self.data_dir}/flowers/valid"
+        train_dir = f"{self.data_dir}"
+        valid_dir = f"{self.data_dir}"
 
-        print(f"Loading training data from {train_dir}")
-        print(f"Loading validation data from {valid_dir}")
+        print(f"Loading training data from {train_dir}/train")
+        print(f"Loading validation data from {valid_dir}/valid")
 
         # Define transforms
         data_transforms = {

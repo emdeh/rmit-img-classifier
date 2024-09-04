@@ -13,7 +13,7 @@ git clone "https://github.com/emdeh/rmit-img-classifier.git"
 
 2. cd into the project folder
 ```bash
-cd rmite-img-classifier
+cd img-classifier
 ```
 
 3. Run the setup script to install the enviornment and the necessary dependencies, and retrieve the dataset:
@@ -23,7 +23,7 @@ source local-setup.sh # Make sure to use source
 
 4. If the environment does not activate automatically, start it with:
 ```bash
-conda activate img-classifier
+conda activate local-env.yaml
 ```
 
 5. Start the training process as described on the /home/emdeh/udacity-course/img-classifier/README.md
