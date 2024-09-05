@@ -32,7 +32,7 @@ conda activate img-classifier
 To train the image classifier, run the following command:
 ```bash
         # Example usage:
-            python src/train.py --data_dir data/flowers/ --save_dir checkpoints/ --arch vgg16 --learning_rate 0.02 --hidden_units 4096 --epochs 5 --device gpu
+            python src/train.py --data_dir data/ --save_dir checkpoints/ --arch vgg16 --learning_rate 0.02 --hidden_units 4096 --epochs 5 --device gpu
 
         # For help:
             python src/train.py -h
@@ -41,7 +41,7 @@ To train the image classifier, run the following command:
 To predict the class of an image using the trained model, run the following command:
 ```bash
         # Example usage:
-            python src/predict.py --image_path data/flowers/valid/12/image_03997.jpg --checkpoint checkpoints/checkpoint.pth --top_k 3 --category_names cat_to_name.json --device cpu
+            python src/predict.py --image_path data/valid/12/image_03997.jpg --checkpoint checkpoints/checkpoint.pth --top_k 3 --category_names cat_to_name.json --device cpu
 
         # For help:
             python src/predict.py -h
