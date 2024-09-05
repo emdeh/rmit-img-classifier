@@ -35,7 +35,19 @@ from utils import ImageProcessor
 
 def main(**kwargs):
     """
-    Function docstring placeholder
+    Performs the prediction of the top K classes for a given image using a pre-trained 
+    model checkpoint.
+
+    Args:
+        **kwargs: Arbitrary keyword arguments, including:
+            - image_path (str): Path to the image file.
+            - checkpoint_path (str): Path to the model checkpoint file.
+            - top_k (int): Number of top K classes to return.
+            - category_names_path (str): Path to a JSON file mapping class indices to category names.
+            - device (str): Device type to use for inference ('cpu' or 'gpu').
+
+    Returns:
+        None
     """
     image_path = kwargs['image_path']
     checkpoint_path = kwargs['checkpoint_path']

@@ -38,7 +38,20 @@ from utils import DataLoader
 
 def main(data_dir, save_dir, arch, learning_rate, hidden_units, epochs, device_type):
     """
-    Function docstring placeholder
+    Trains a deep learning model on the provided dataset and saves the trained model 
+    checkpoint to a specified directory.
+
+    Args:
+        data_dir (str): Path to the directory containing the training and validation datasets.
+        save_dir (str): Directory where the trained model checkpoint will be saved.
+        arch (str): Model architecture to use (e.g., 'vgg16', 'resnet50').
+        learning_rate (float): Learning rate for the optimizer.
+        hidden_units (int): Number of hidden units in the model's classifier.
+        epochs (int): Number of training epochs.
+        device_type (str): Device to use for training ('cpu' or 'gpu').
+
+    Returns:
+        None
     """
     # Initialize DataLoader class
     data_loader = DataLoader(data_dir)

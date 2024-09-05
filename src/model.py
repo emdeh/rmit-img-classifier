@@ -31,7 +31,19 @@ class ModelManager:
     """
     def __init__(self, arch, hidden_units, learning_rate, class_to_idx, device_type):
         """
-        Class docstring placeholder
+        Initialises the ModelManager with the specified architecture, hidden units, learning rate,
+        class-to-index mapping, and device type (CPU or GPU). Also sets up the model, criterion, 
+        and optimiser for training.
+
+        Args:
+            arch (str): Model architecture to use (e.g., 'vgg16' or 'resnet50').
+            hidden_units (int): Number of hidden units for the model's classifier.
+            learning_rate (float): Learning rate for the optimiser.
+            class_to_idx (dict): Mapping of class labels to indices.
+            device_type (str): Device to use for training ('cpu' or 'gpu').
+
+        Returns:
+            None
         """
         # Set the device based on device_type (cpu or gpu)
         if device_type == 'gpu':
@@ -61,7 +73,15 @@ class ModelManager:
 
     def _create_model(self, arch, hidden_units):
         """
-        Function docstring placeholder
+        Creates and returns a deep learning model based on the specified architecture 
+        and hidden units, with pretrained weights and a new classifier for VGG16 or ResNet50.
+
+        Args:
+            arch (str): Model architecture to use (e.g., 'vgg16' or 'resnet50').
+            hidden_units (int): Number of hidden units for the model's classifier.
+
+        Returns:
+            torch.nn.Module: The model with the updated classifier.
         """
         # Normalize the architecture name to handle variations like 'VGG16'
         # and 'vgg16'
@@ -114,7 +134,17 @@ class ModelManager:
 
     def train(self, dataloaders, epochs, print_every=5):
         """
-        Function docstring placeholder
+        Trains the model using the specified dataloaders for the given number of epochs. 
+        The function will also periodically evaluate the model on the validation set and prints 
+        training/validation statistics as it progresses through epochs.
+
+        Args:
+            dataloaders (dict): Dictionary containing 'train' and 'valid' dataloaders.
+            epochs (int): Number of training epochs.
+            print_every (int): Number of steps between printing training/validation statistics.
+
+        Returns:
+            None
         """
         print("Training commencing...")
         steps = 0
@@ -182,7 +212,14 @@ class ModelManager:
 
     def save_checkpoint(self, save_dir):
         """
-        Function docstring placeholder
+        Saves the trained model into a checkpoint in the specified directory, including the model 
+        state, architecture, class-to-index mapping, hidden units, and learning rate.
+
+        Args:
+            save_dir (str): Directory where the checkpoint file will be saved.
+
+        Returns:
+            None
         """
         print(f"Saving checkpoint to: {save_dir}")
 
@@ -211,7 +248,15 @@ class ModelManager:
     @classmethod
     def load_checkpoint(cls, checkpoint_path, device_type):
         """
-        Function docstring placeholder
+        Loads a model checkpoint from the specified path and restores the model's state, 
+        architecture, and other parameters. Also loads the class-to-index mapping.
+
+        Args:
+            checkpoint_path (str): Path to the model checkpoint file.
+            device_type (str): Device to load the model on ('cpu' or 'gpu').
+
+        Returns:
+            ModelManager: An instance of the ModelManager with the loaded model.
         """
 
         # Determine map_location based on device_type
@@ -252,11 +297,19 @@ class ModelManager:
 
         return model_manager
 
-
-
     def predict(self, image, top_k):
         """
-        Function docstring placeholder
+        Predicts the top K classes for the given image using the trained model. Returns 
+        the probabilities and class indices of the top K predicted classes.
+
+        Args:
+            image (torch.Tensor): Preprocessed image tensor for prediction.
+            top_k (int): Number of top predictions to return.
+
+        Returns:
+            tuple: A tuple containing:
+                - probs (numpy.ndarray): Probabilities of the top K predicted classes.
+                - classes (numpy.ndarray): Indices of the top K predicted classes.
         """
         self.model.eval()
         image = image.to(self.device)
@@ -267,7 +320,13 @@ class ModelManager:
 
     def load_category_names(self, json_file):
         """
-        Function docstring placeholder
+        Loads a JSON file that maps class indices to category names.
+
+        Args:
+            json_file (str): Path to the JSON file containing class-to-name mappings.
+
+        Returns:
+            dict: A dictionary mapping class indices to category names.
         """
         # Load mapping from class index to category names
         with open(json_file, 'r', encoding='utf-8') as f:
@@ -275,7 +334,15 @@ class ModelManager:
 
     def map_class_to_name(self, class_indices, category_names):
         """
-        Function docstring placeholder
+        Maps the predicted class indices to their corresponding category names using 
+        the provided category names dictionary.
+
+        Args:
+            class_indices (list): List of predicted class indices.
+            category_names (dict): Dictionary mapping class indices to category names.
+
+        Returns:
+            list: A list of category names corresponding to the predicted class indices.
         """
         # Invert class_to_idx to get idx_to_class mapping
         idx_to_class = {v: k for k, v in self.class_to_idx.items()}

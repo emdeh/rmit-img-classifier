@@ -25,11 +25,31 @@ class DataLoader:
     class docstring placeholder
     """
     def __init__(self, data_dir):
+        """
+        Initialises the DataLoader with the specified data directory and sets up paths 
+        for loading the training and validation datasets.
+
+        Args:
+            data_dir (str): Directory containing the dataset (with 'train' and 'valid' subdirectories).
+
+        Returns:
+            None
+        """
         self.data_dir = data_dir
 
     def load_data(self):
         """
-        Function docstring placeholder
+        Loads the training and validation datasets from the specified directory, applies the 
+        appropriate transformations for each dataset, and returns dataloaders for use in model 
+        training and validation.
+
+        Args:
+            None
+
+        Returns:
+            tuple: 
+                - dataloaders (dict): Dataloaders for the 'train' and 'valid' datasets.
+                - class_to_idx (dict): Mapping of class labels to indices.
         """
         train_dir = f"{self.data_dir}"
         valid_dir = f"{self.data_dir}"
@@ -77,7 +97,15 @@ class ImageProcessor:
     @staticmethod
     def process_image(image_path):
         """
-        Function docstring placeholder
+        Processes an image for use in the model by applying transformations such as 
+        resizing, cropping, converting to a tensor, and normalising the pixel values.
+
+        Args:
+            image_path (str): Path to the image file to be processed.
+
+        Returns:
+            torch.Tensor: A tensor representation of the processed image, ready for input 
+            to the model.
         """
         image = Image.open(image_path)
         print("Image pre-processing starting...")
