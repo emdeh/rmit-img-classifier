@@ -22,7 +22,14 @@ from PIL import Image
 
 class DataLoader:
     """
-    class docstring placeholder
+    A class for loading and transforming image datasets for training and validation.
+
+    Attributes:
+        data_dir (str): The directory where the dataset is stored.
+
+    Methods:
+        load_data(): Loads the training and validation datasets, applies transformations,
+                        and returns the dataloaders and class-to-index mapping.
     """
     def __init__(self, data_dir):
         """
@@ -92,7 +99,16 @@ class DataLoader:
 
 class ImageProcessor:
     """
-    Class docstring placeholder
+    A class for handling the preprocessing of images for input into deep learning models.
+
+    This class provides static methods to process image files, applying transformations
+    such as resizing, cropping, converting the image to a tensor, and normalising the pixel values 
+    to match the requirements for model inference or training.
+
+    Methods:
+        process_image(image_path): Loads an image from the specified file path and applies 
+                                   necessary preprocessing steps to prepare it for input 
+                                   into a model.
     """
     @staticmethod
     def process_image(image_path):

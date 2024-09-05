@@ -27,7 +27,29 @@ from torchvision import models
 
 class ModelManager:
     """
-    Class docstring placeholder
+    A class for managing the creation, training, saving, loading, and predicting 
+    of models using architectures like VGG16 and ResNet50.
+
+    The ModelManager provides methods to build a model with a specific architecture 
+    and hidden units, train it on a dataset, save the trained model checkpoint, and 
+    load a saved checkpoint for future use. It also supports making predictions using 
+    the trained model.
+
+    Attributes:
+        arch (str): Model architecture to use (e.g., 'vgg16' or 'resnet50').
+        hidden_units (int): Number of hidden units for the model's classifier.
+        learning_rate (float): Learning rate for the optimiser.
+        class_to_idx (dict): Mapping of class labels to indices.
+        device_type (str): Device to use for training ('cpu' or 'gpu').
+
+    Methods:
+        _create_model(arch, hidden_units): Builds the model with the specified architecture and hidden units.
+        train(dataloaders, epochs, print_every): Trains the model and prints training/validation statistics.
+        save_checkpoint(save_dir): Saves the model checkpoint.
+        load_checkpoint(checkpoint_path, device_type): Loads a model checkpoint from the specified path.
+        predict(image, top_k): Predicts the top K classes for a given image.
+        load_category_names(json_file): Loads a JSON file that maps class indices to category names.
+        map_class_to_name(class_indices, category_names): Maps predicted class indices to category names.
     """
     def __init__(self, arch, hidden_units, learning_rate, class_to_idx, device_type):
         """
