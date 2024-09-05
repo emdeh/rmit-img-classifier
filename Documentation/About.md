@@ -39,3 +39,4 @@ Image-Classifier/
 10. logging 
 11. check examples in readme are accurate
 12. fix up structure
+13. error handling
