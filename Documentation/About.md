@@ -33,12 +33,5 @@ Image-Classifier/
 4. Jupyter notebook reqs
 5. Jupyter notebook doc
 6. Other doco
-7. Fix setup scripts (auto activate and output alignment)
 8. a way to trigger help if ran with no flags
-9. make remote the only env yaml
-10. logging 
-11. check examples in readme are accurate
-12. fix up structure
 13. error handling
-14. train and test on vgg16
-15. train and test on other type
