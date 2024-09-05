@@ -146,7 +146,7 @@ class ModelManager:
 
                             # Calculate accuracy
                             ps = torch.exp(outputs)
-                            top_class = ps.topk(1, dim=1)
+                            top_p, top_class = ps.topk(1, dim=1)
                             equals = top_class == labels.view(*top_class.shape)
                             accuracy += torch.mean(equals.type(torch.FloatTensor)).item()
                             #print("Debug: Calculated accuracy")
