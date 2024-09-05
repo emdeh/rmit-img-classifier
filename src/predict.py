@@ -1,6 +1,7 @@
 """
 Module docstring placeholder
 """
+import sys
 import argparse
 from model import ModelManager
 from utils import ImageProcessor
@@ -79,6 +80,11 @@ if __name__ == "__main__":
         choices=['cpu', 'gpu'],
         help='Device to use for inference: "cpu" or "gpu". Example: -d gpu'
     )
+
+    # If no args passed, print help
+    if len(sys.argv) == 1:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
 
     # Parse arguments
     args = parser.parse_args()

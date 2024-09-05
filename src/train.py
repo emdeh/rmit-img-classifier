@@ -1,6 +1,7 @@
 """
 Module docstring placeholder
 """
+import sys
 import argparse
 from model import ModelManager
 from utils import DataLoader
@@ -74,6 +75,11 @@ if __name__ == "__main__":
         choices=['cpu', 'gpu'],
         help='Device to use for training: "cpu" or "gpu". Example: -g gpu (default)'
     )
+
+    # If no args passed, print help
+    if len(sys.argv) == 1:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
 
     # Parse arguments
     args = parser.parse_args()
