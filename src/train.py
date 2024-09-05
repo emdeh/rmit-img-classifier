@@ -1,6 +1,36 @@
 """
-Module docstring placeholder
+This module provides functionality to train a new deep learning model on a dataset. 
+It allows the user to specify parameters such as the architecture, learning rate, 
+hidden units, and number of training epochs. The model is then saved as a checkpoint 
+for later use.
+
+The script initialises a DataLoader object to load the training and validation datasets, 
+sets up the model using a ModelManager object, and handles the training process. 
+The final trained model is saved to the specified directory.
+
+Functions:
+    main(data_dir, save_dir, arch, learning_rate, hidden_units, epochs, device_type): 
+    Trains a model using the specified parameters and saves the trained model checkpoint.
+
+Command-line arguments:
+    - --data_dir / -dir: Path to the directory containing the training data.
+    - --save_dir / -s: Path to the directory where the model's checkpoint will be saved.
+    - --arch / -a: The model architecture to use (default is vgg16).
+    - --learning_rate / -l: The learning rate for training (default is 0.002).
+    - --hidden_units / -u: The number of hidden units in the classifier (default is 4096).
+    - --epochs / -e: The number of training epochs (default is 5).
+    - --device / -d: Device to use for training, either "cpu" or "gpu" (default is "gpu").
+
+Usage example:
+    python train.py --data_dir /path/to/data --save_dir /path/to/save_dir --arch resnet50 \
+    --learning_rate 0.001 --hidden_units 512 --epochs 20 --device cpu
+
+Dependencies:
+    - torch: A deep learning framework for defining and training models.
+    - argparse: For parsing command-line arguments.
+    - sys: Provides system-specific functions and handles command-line input.
 """
+
 import sys
 import argparse
 from model import ModelManager

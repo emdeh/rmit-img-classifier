@@ -94,5 +94,4 @@ Image-Classifier/
 4. Jupyter notebook reqs
 5. Jupyter notebook doc
 6. Other doco
-8. a way to trigger help if ran with no flags
 13. error handling

@@ -1,6 +1,33 @@
 """
-Module docstring placeholder
+This module provides the functionality to predict the class of a flower from an image 
+using a pre-trained model. The user can specify the image path, model 
+checkpoint, the number of top predicted classes to return, and an optional JSON file 
+for mapping class indices to human-readable names.
+
+The script loads a model checkpoint, processes the input image, and predicts the top 
+K classes along with their associated probabilities.
+
+Functions:
+    main(**kwargs): Processes the input arguments, loads the model and image, 
+    performs the prediction, and displays the predicted classes and their probabilities.
+
+Command-line arguments:
+    - --image_path / -i: Path to the input image file.
+    - --checkpoint / -c: Path to the model checkpoint file.
+    - --top_k / -k: Number of top K predicted classes to return (default is 5).
+    - --category_names / -n: Path to a JSON file for mapping class indices to flower names.
+    - --device / -d: Device to use for inference, either "cpu" or "gpu" (default is "gpu").
+
+Usage example:
+    python predict.py --image_path /path/to/image.jpg --checkpoint /path/to/checkpoint.pth \
+    --top_k 5 --category_names /path/to/cat_to_name.json --device gpu
+
+Dependencies:
+    - torch: A deep learning framework used for loading models and performing inference.
+    - argparse: Handles parsing of command-line arguments.
+    - sys: Provides system-specific functions for handling command-line input.
 """
+
 import sys
 import argparse
 from model import ModelManager

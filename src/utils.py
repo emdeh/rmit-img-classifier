@@ -1,6 +1,21 @@
 """
-Module docstring placeholder
+This module provides utility classes for handling data loading and image processing
+tasks.
+
+The `DataLoader` class is responsible for loading and transforming training and
+validation datasets, while the `ImageProcessor` class provides methods for processing
+images to prepare them for input into deep learning models.
+
+Classes:
+    DataLoader: Handles loading and transforming datasets for training and validation.
+    ImageProcessor: Provides image preprocessing functionality for input into models.
+
+Dependencies:
+    - torch: Provides deep learning framework functionality.
+    - torchvision: Contains popular datasets and transforms for image data.
+    - PIL: Python Imaging Library, used for opening and manipulating image files.
 """
+
 import torch
 from torchvision import datasets, transforms
 from PIL import Image

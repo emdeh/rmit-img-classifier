@@ -1,6 +1,23 @@
 """
-Module docstring placeholder
+This module provides the `ModelManager` class for managing deep learning model
+operations, including model creation, training, checkpoint saving and loading, and
+making predictions.
+
+The `ModelManager` class allows flexibility in selecting different archiectectures, hidden units, 
+learning rate, and devices (CPU/GPU) for training. It also handles saving and 
+loading checkpoints, so models can be used for inferences.
+
+Classes:
+    ModelManager: Handles creating, training, saving, loading, and predicting 
+    with deep learning models using various architectures like VGG16 and ResNet50.
+
+Dependencies:
+    - torch: A deep learning framework used for defining models and performing computations.
+    - torchvision: Contains model architectures.
+    - json: For handling JSON files, in this case class-to-category mapping.
+    - warnings: For handling warnings during model loading.
 """
+
 import json
 import warnings
 import torch
