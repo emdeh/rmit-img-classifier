@@ -26,7 +26,11 @@ class ModelManager:
         self.learning_rate = learning_rate
         self.model = self._create_model(arch, hidden_units)
         self.criterion = nn.NLLLoss()
-        self.optimizer = optim.Adam(self.model.classifier.parameters(), lr=learning_rate)
+        # Setup optimizer based on the architecture
+        if arch == 'vgg16':
+            self.optimizer = optim.Adam(self.model.classifier.parameters(), lr=learning_rate)
+        elif arch == 'resnet50':
+            self.optimizer = optim.Adam(self.model.fc.parameters(), lr=learning_rate)
         self.model.to(self.device)
 
     def _create_model(self, arch, hidden_units):
