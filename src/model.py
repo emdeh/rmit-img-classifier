@@ -2,29 +2,13 @@ import torch
 from torch import nn, optim
 from torchvision import models
 import json
-import warnings
-from utils import setup_logging
-import logging
 
 class ModelManager:
-    def __init__(self, arch, hidden_units, learning_rate, class_to_idx, device_type):
-        # Set the device based on device_type (cpu or gpu)
-        if device_type == 'gpu':
-            if torch.cuda.is_available():
-                self.device = torch.device("cuda")
-                print("GPU selected and available. Running on GPU.")
-            else:
-                self.device = torch.device("cpu")
-                print("GPU selected but not available. Falling back to CPU.")
-        else:
-            self.device = torch.device("cpu")
-            print("CPU explicitly selected. Running on CPU.")
-
-        # Model setup
+    def __init__(self, arch, hidden_units, learning_rate, class_to_idx, gpu):
+        self.device = torch.device("cuda" if gpu and torch.cuda.is_available() else "cpu")
+        print(f"Using device: {self.device}")
+        print("If you selected GPU, it does not appear available")
         self.class_to_idx = class_to_idx  # Class index mapping
-        self.arch = arch
-        self.hidden_units = hidden_units
-        self.learning_rate = learning_rate
         self.model = self._create_model(arch, hidden_units)
         self.criterion = nn.NLLLoss()
         self.optimizer = optim.Adam(self.model.classifier.parameters(), lr=learning_rate)
@@ -33,7 +17,7 @@ class ModelManager:
     def _create_model(self, arch, hidden_units):
         # Load a pre-trained model
         model = getattr(models, arch)(weights='DEFAULT')
-
+        
         # Freeze parameters so we don't backpropagate through them
         for param in model.parameters():
             param.requires_grad = False
@@ -124,39 +108,18 @@ class ModelManager:
             'state_dict': self.model.state_dict(),
             'class_to_idx': self.class_to_idx,
             'architecture': self.model.__class__.__name__,
-            'hidden_units': self.hidden_units,
-            'learning_rate': self.learning_rate,
             'classifier': self.model.classifier
         }
         torch.save(checkpoint, f"{save_dir}/checkpoint.pth")
         print("Checkpoint saved!")
-        # Move back to the original ddevice after savings
-        #self.model.to(self.device)
 
     @classmethod
-    def load_checkpoint(cls, checkpoint_path, device_type):
-        # Setup logger to explain message
-        logger = setup_logging()
-
-        # Allowlist for the Sequential class for safe unpickling with weights_only=True
-        torch.serialization.add_safe_globals([set, nn.Sequential, nn.Linear, nn.ReLU, nn.Dropout, nn.LogSoftmax])
-
-        # Load the full checkpoint from a file
-        checkpoint = torch.load(checkpoint_path, map_location=device_type)
-
-        # Extract necessary info from the checkpoint
+    def load_checkpoint(cls, checkpoint_path, gpu):
+        # Load a checkpoint from a file
+        checkpoint = torch.load(checkpoint_path, weights_only=False)
         class_to_idx = checkpoint['class_to_idx']
-        arch = checkpoint.get('architecture', 'vgg16')  # Default to vgg16 if not found
-        hidden_units = checkpoint.get('hidden_units', 4096)  # Default to 4096 if not found
-        learning_rate = checkpoint.get('learning_rate', 0.001)  # Default to 0.001 if not found
-
-        # Create a new ModelManager instance with the saved hyperparameters
-        model_manager = cls(arch, hidden_units, learning_rate, class_to_idx, device_type)
-
-        # Load the state_dict into the model
+        model_manager = cls('vgg16', 512, 0.001, class_to_idx, gpu)
         model_manager.model.load_state_dict(checkpoint['state_dict'])
-
-        # Return the loaded model manager
         return model_manager
 
     def predict(self, image, top_k):
