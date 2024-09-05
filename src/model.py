@@ -33,7 +33,7 @@ class ModelManager:
     def _create_model(self, arch, hidden_units):
         # Create model based on architecture (used during training)
         if arch == 'vgg16':
-            model = models.vgg16(pretrained=True)
+            model = getattr(models, arch)(weights='DEFAULT')
         else:
             raise ValueError(f"Unsupported architecture: {arch}")
 
