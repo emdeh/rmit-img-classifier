@@ -156,7 +156,7 @@ class ModelManager:
         else:
             map_location = 'cpu'
 
-        with warnings.catch_warnings(record=True,) as w:
+        with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("ignore")
 
             # Load the checkpoint from file
@@ -166,7 +166,12 @@ class ModelManager:
 
         # Extract necessary information
         class_to_idx = checkpoint['class_to_idx']
-        arch = checkpoint.get('architecture', 'vgg16')
+        arch = checkpoint.get('architecture', 'vgg16')  # Default to vgg16 if not found
+        
+        # Fix for incorrectly saved architecture names
+        if arch == 'vgg':
+            arch = 'vgg16'
+        
         hidden_units = checkpoint.get('hidden_units', 4096)
         learning_rate = checkpoint.get('learning_rate', 0.001)
 
@@ -177,6 +182,7 @@ class ModelManager:
         model_manager.model.load_state_dict(checkpoint['state_dict'])
 
         return model_manager
+
 
     def predict(self, image, top_k):
         self.model.eval()
