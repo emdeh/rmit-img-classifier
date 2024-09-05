@@ -10,6 +10,16 @@ To setup the environment, do the following:
 wget https://raw.githubusercontent.com/emdeh/rmit-img-classifier/main/scripts/setup.sh
 ```
 
+Then make the file executable with:
+```bash
+chmod +x setup.sh
+```
+
+Then run the file with source:
+```bash
+source setup.sh
+```
+
 >**There is no need to clone the repo, this will be done for you**
 
 ## Usage
