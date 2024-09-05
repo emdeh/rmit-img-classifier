@@ -49,7 +49,50 @@ To predict the class of an image using the trained model, run the following comm
 
 ## Other information
 
-If you train on a remote GPU and you want to monitor it, use the following command:
+If you train on a remote GPU and if you want to monitor it, use the following command:
 ```bash
 watch -n 1 nvidia-smi
 ```
+
+## Project structure
+
+```bash
+Image-Classifier/
+├── assets/ # Not required for general usage
+│   ├── Flowers.png 
+│   └── inference_example.png
+├── data/
+│   ├── train/ # Install with wget from setup.sh
+│   ├── valid/ # Install with wget from setup.sh
+│   ├── test/ # Install with wget from setup.sh
+│   └── cat_to_name.json
+├── src/
+│   ├── __init__.py
+│   ├── train.py
+│   ├── predict.py
+│   ├── utils.py
+│   ├── data_loader.py
+│   └── model.py
+├── checkpoints/ # Created with setup.sh - .gitignored due to file size.
+│   └── [Saved checkpoint files]
+├── scripts/
+│   ├── update.sh # Used to update /src/* of remote implementations from GitHub.
+│   └── setup.sh # Used to setup the environment - see above
+├── env.yaml # Called by setup.sh, contains dependencies
+├── README.md
+├── Image Classifier Project.ipynb # Initial development; not needed for general usage.
+├── Documentation # Other documentation.
+└── .gitignore
+```
+
+
+# TO-DO LIST
+
+1. Docstrings
+2. Module strings
+3. Other comments
+4. Jupyter notebook reqs
+5. Jupyter notebook doc
+6. Other doco
+8. a way to trigger help if ran with no flags
+13. error handling
