@@ -33,7 +33,7 @@ class ModelManager:
     def _create_model(self, arch, hidden_units):
         # Load a pre-trained model
         model = getattr(models, arch)(weights='DEFAULT')
-
+        
         # Freeze parameters so we don't backpropagate through them
         for param in model.parameters():
             param.requires_grad = False
@@ -130,33 +130,38 @@ class ModelManager:
         }
         torch.save(checkpoint, f"{save_dir}/checkpoint.pth")
         print("Checkpoint saved!")
-        # Move back to the original ddevice after savings
-        #self.model.to(self.device)
 
     @classmethod
     def load_checkpoint(cls, checkpoint_path, device_type):
         # Setup logger to explain message
         logger = setup_logging()
 
-        # Allowlist for the Sequential class for safe unpickling with weights_only=True
-        torch.serialization.add_safe_globals([set, nn.Sequential, nn.Linear, nn.ReLU, nn.Dropout, nn.LogSoftmax])
+        with warnings.catch_warnings(record=True,) as w:
+                warnings.simplefilter("ignore")
 
-        # Load the full checkpoint from a file
-        checkpoint = torch.load(checkpoint_path, map_location=device_type)
+                # Allowlist for the Sequential class for safe unpickling with weights_only=True
+                torch.serialization.add_safe_globals([set, nn.Sequential, nn.Linear, nn.ReLU, nn.Dropout, nn.LogSoftmax])
 
-        # Extract necessary info from the checkpoint
+                # Load the full checkpoint from a file
+                checkpoint = torch.load(checkpoint_path, map_location=device_type)
+
+        logger.info("\nCheckpoint loaded with weights_only=False.\n"
+                    "This can lead to arbitrary code execution.\n"
+                    "Only known torch objects are unpickled as a safeguard,\n"
+                    "but you should only load trusted checkpoints.\n")             
+
+        # Extract just the necessary info
         class_to_idx = checkpoint['class_to_idx']
         arch = checkpoint.get('architecture', 'vgg16')  # Default to vgg16 if not found
-        hidden_units = checkpoint.get('hidden_units', 4096)  # Default to 4096 if not found
+        hidden_units = checkpoint.get('hidden_units', 4096)  # Default to 512 if not found
         learning_rate = checkpoint.get('learning_rate', 0.001)  # Default to 0.001 if not found
-
+        
         # Create a new ModelManager instance with the saved hyperparameters
         model_manager = cls(arch, hidden_units, learning_rate, class_to_idx, device_type)
 
-        # Load the state_dict into the model
+        #Load the state_dict from checkpoint only
         model_manager.model.load_state_dict(checkpoint['state_dict'])
 
-        # Return the loaded model manager
         return model_manager
 
     def predict(self, image, top_k):
