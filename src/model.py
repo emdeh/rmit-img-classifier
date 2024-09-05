@@ -3,8 +3,7 @@ from torch import nn, optim
 from torchvision import models
 import json
 import warnings
-from utils import setup_logging
-import logging
+
 
 class ModelManager:
     def __init__(self, arch, hidden_units, learning_rate, class_to_idx, device_type):
@@ -147,8 +146,6 @@ class ModelManager:
 
     @classmethod
     def load_checkpoint(cls, checkpoint_path, device_type):
-        # Setup logger to explain message
-        logger = setup_logging()
 
         # Determine map_location based on device_type
         if device_type == 'gpu' and torch.cuda.is_available():
@@ -162,7 +159,7 @@ class ModelManager:
             # Load the checkpoint from file
             checkpoint = torch.load(checkpoint_path, map_location=map_location)
 
-        logger.info("\nCheckpoint loaded.")
+        print("\nCheckpoint loaded.")
 
         # Extract necessary information
         class_to_idx = checkpoint['class_to_idx']
