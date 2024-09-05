@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Variables
-PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"  # Go up one level from /scripts to the project root
+PROJECT_DIR=$HOME/img-classifier
 SRC_DIR="$PROJECT_DIR/src"
 REPO_ZIP_URL="https://github.com/emdeh/rmit-img-classifier/archive/refs/heads/main.zip"
 ZIP_FILE="$PROJECT_DIR/repo.zip"
@@ -39,4 +39,13 @@ LOCAL_HASH=$(md5sum $ENV_FILE | awk '{ print $1 }')
 REMOTE_HASH=$(md5sum $REMOTE_ENV_FILE | awk '{ print $1 }')
 
 if [ "$LOCAL_HASH" != "$REMOTE_HASH" ]; then
-    echo "env.yaml file has changed
+    echo "env.yaml file has changed. Updating Conda environment..."
+    conda env update -f $ENV_FILE --prune
+else
+    echo "env.yaml is up to date. No Conda environment update required."
+fi
+
+# Clean up the remote env.yaml file
+rm "$REMOTE_ENV_FILE"
+
+echo "Project update complete."
