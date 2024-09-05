@@ -148,17 +148,28 @@ class ModelManager:
 
     def save_checkpoint(self, save_dir):
         print(f"Saving checkpoint to: {save_dir}")
+        
+        # Save the appropriate classifier depending on the architecture
+        if self.arch == 'vgg16':
+            classifier = self.model.classifier
+        elif self.arch == 'resnet50':
+            classifier = self.model.fc
+        else:
+            raise ValueError(f"Architecture {self.arch} not supported for saving checkpoints.")
+
         # Save checkpoint with necessary metadata
         checkpoint = {
             'state_dict': self.model.state_dict(),
             'class_to_idx': self.class_to_idx,
-            'architecture': self.arch,
+            'architecture': self.arch,  # Save the architecture correctly
             'hidden_units': self.hidden_units,
             'learning_rate': self.learning_rate,
-            'classifier': self.model.classifier
+            'classifier': classifier  # Save the correct classifier
         }
+        
         torch.save(checkpoint, f"{save_dir}/checkpoint.pth")
         print("Checkpoint saved!")
+
 
     @classmethod
     def load_checkpoint(cls, checkpoint_path, device_type):
