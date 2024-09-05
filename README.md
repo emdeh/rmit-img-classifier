@@ -36,3 +36,10 @@ To predict the class of an image using the trained model, run the following comm
         # For help:
             python src/predict.py -h
 ```
+
+## Other information
+
+If you train on a remote GPU and you want to monitor it, use the following command:
+```bash
+watch -n 1 nvidia-smi
+```

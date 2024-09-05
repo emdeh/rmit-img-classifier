@@ -40,3 +40,5 @@ Image-Classifier/
 11. check examples in readme are accurate
 12. fix up structure
 13. error handling
+14. train and test on vgg16
+15. train and test on other type
