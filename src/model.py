@@ -31,8 +31,19 @@ class ModelManager:
         self.model.to(self.device)
 
     def _create_model(self, arch, hidden_units):
-        # Load a pre-trained model
-        model = getattr(models, arch)(weights='DEFAULT')
+        # For newer versions of torchvision
+        if hasattr(models, arch):
+            # Check if weights need to be loaded explicitly for newer versions
+            if arch == 'vgg16':
+                model = models.vgg16(weights=models.VGG16_Weights.DEFAULT)
+            elif arch == 'resnet50':
+                model = models.resnet50(weights=models.ResNet50_Weights.DEFAULT)
+            else:
+                raise ValueError(f"Architecture {arch} not supported or weights not available.")
+        else:
+            # For older versions of torchvision that use 'pretrained=True' instead of weights
+            model = getattr(models, arch)(pretrained=True)
+
         
         # Freeze parameters so we don't backpropagate through them
         for param in model.parameters():
@@ -163,7 +174,7 @@ class ModelManager:
         model_manager.model.load_state_dict(checkpoint['state_dict'])
 
         return model_manager
-        
+
     def predict(self, image, top_k):
         self.model.eval()
         image = image.to(self.device)
