@@ -70,4 +70,6 @@ else
     exit 1
 fi
 
+cd $PROJECT_DIR
+
 echo "Environment setup is complete. To activate the environment please run 'conda activate img-classifier'"
