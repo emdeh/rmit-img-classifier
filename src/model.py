@@ -203,11 +203,13 @@ class ModelManager:
         else:
             map_location = 'cpu'
 
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("ignore")
+        print(f"Loading checkpoint from: {checkpoint_path}")
+        
+        warnings.simplefilter("ignore")
+        # TODO: Implement logging
 
-            # Load the checkpoint from file
-            checkpoint = torch.load(checkpoint_path, map_location=map_location)
+        # Load the checkpoint from file
+        checkpoint = torch.load(checkpoint_path, map_location=map_location)
 
         print("\nCheckpoint loaded.")
 
