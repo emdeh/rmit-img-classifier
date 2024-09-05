@@ -1,14 +1,14 @@
 #!/bin/bash
 
 # Variables
-ENV_NAME="remote-env"
+ENV_NAME="img-classifier"
 REPO_URL="https://github.com/emdeh/rmit-img-classifier.git"
 DATA_URL="https://s3.amazonaws.com/content.udacity-data.com/nd089/flower_data.tar.gz"
 MINICONDA_URL="https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh"
 PROJECT_DIR="$HOME/img-classifier"
 CHECKPOINT_DIR="$PROJECT_DIR/checkpoints"
 DATA_DIR="$PROJECT_DIR/data"
-ENV_FILE="$PROJECT_DIR/remote-env.yaml"
+ENV_FILE="$PROJECT_DIR/env.yaml"
 
 # Move to the user's home directory
 cd $HOME
@@ -20,6 +20,8 @@ if ! command -v conda &> /dev/null; then
     bash Miniconda3-latest-Linux-x86_64.sh -b -p $HOME/miniconda
     export PATH="$HOME/miniconda/bin:$PATH"
     rm $HOME/Miniconda3-latest-Linux-x86_64.sh
+    conda init
+    source ~/.bashrc
     echo "Miniconda installed."
 else
     echo "Miniconda is already installed."
@@ -62,14 +64,10 @@ fi
 # Create and activate the Conda environment
 if [ -f "$ENV_FILE" ]; then
     echo "Creating Conda environment from $ENV_FILE..."
-    conda init
-    source ~/.bashrc
     conda env create -f $ENV_FILE
-    echo "Activating Conda environment..."
-    conda activate $ENV_NAME
 else
     echo "$ENV_FILE not found. Please ensure the env.yaml file is present in the project directory."
     exit 1
 fi
 
-echo "Environment setup is complete. The Conda environment is now activated."
+echo "Environment setup is complete. To activate the environment please run 'conda activate img-classifier'"

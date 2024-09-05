@@ -4,28 +4,35 @@ Project code for Udacity's AI Programming with Python Nanodegree program. In thi
 
 ## Geting started
 
-To setup the environment, run one of the setup scripts that is appropriate for your environment.
+To setup the environment, do the following:
 
-- For instructions on how you can use a remote GPU, please see [remote-use.md](/path/to/remote-training.md).
-- For instructions on how to use a local GPU (or CPU), please see [local-use.md](/path/to/local-use.md).
+```bash
+wget https://raw.githubusercontent.com/emdeh/rmit-img-classifier/main/scripts/setup.sh
+```
+
+>**There is no need to clone the repo, this will be done for you**
 
 ## Usage
 
+Once the environment is setup, activate it with:
+```bash
+conda activate img-classifier
+```
+
 To train the image classifier, run the following command:
 ```bash
-        Example usage:
-            python train.py --data_dir /path/to/data --save_dir /path/to/save_dir --arch resnet50 --learning_rate 0.001 --hidden_units 512 --epochs 20 --device cpu
+        # Example usage:
+            python src/train.py --data_dir ~/img-classifier/data/ --save_dir ~/img-classifier/checkpoints/ --arch resnet50 --learning_rate 0.002 --hidden_units 512 --epochs 20 --device cpu
+
+        # For help:
+            python src/train.py -h
 ```
 
 To predict the class of an image using the trained model, run the following command:
 ```bash
-        Example usage:
-            python predict.py --image_path /path/to/image --checkpoint /path/to/checkpoint --top_k 3 --category_names /path/to/cat_to_name.json --device cpu
+        # Example usage:
+            python src/predict.py --image_path ~/img-classifier/data/valid/12/image_03997.jpg  --checkpoint ~/img-classifier/checkpoints/checkpoint.pth --top_k 3 --category_names ~/img-classifier/cat_to_name.json --device cpu
+
+        # For help:
+            python src/predict.py -h
 ```
-
-### More information
-
-For instructions on how you can use a remote GPU, please see [remote-training.md](/path/to/remote-training.md).
-
-## Jupyter Notebook
-
