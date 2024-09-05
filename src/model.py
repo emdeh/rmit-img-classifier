@@ -137,7 +137,7 @@ class ModelManager:
         checkpoint = {
             'state_dict': self.model.state_dict(),
             'class_to_idx': self.class_to_idx,
-            'architecture': self.model.__class__.__name__,
+            'architecture': self.arch,
             'hidden_units': self.hidden_units,
             'learning_rate': self.learning_rate,
             'classifier': self.model.classifier
@@ -168,8 +168,11 @@ class ModelManager:
         class_to_idx = checkpoint['class_to_idx']
         arch = checkpoint.get('architecture', 'vgg16')  # Default to vgg16 if not found
         
-        # Fix for incorrectly saved architecture names
-        if arch == 'vgg':
+        # Debugging step: Print out the architecture to make sure it is correct
+        print(f"Loaded architecture from checkpoint: {arch}")
+
+        # Normalize the architecture name
+        if arch.lower() == 'vgg':
             arch = 'vgg16'
         
         hidden_units = checkpoint.get('hidden_units', 4096)
@@ -182,6 +185,7 @@ class ModelManager:
         model_manager.model.load_state_dict(checkpoint['state_dict'])
 
         return model_manager
+
 
 
     def predict(self, image, top_k):
