@@ -5,9 +5,15 @@ import json
 
 class ModelManager:
     def __init__(self, arch, hidden_units, learning_rate, class_to_idx, gpu):
-        self.device = torch.device("cuda" if gpu and torch.cuda.is_available() else "cpu")
-        print(f"Using device: {self.device}")
-        print("If you selected GPU, it does not appear available")
+    #    Set the device based on user preference and availability
+        if gpu and torch.cuda.is_available():
+            self.device = torch.device("cuda")
+            print("GPU selected and available. Running on GPU.")
+        else:
+            self.device = torch.device("cpu")
+            print("Using device: CPU")
+            if gpu:
+                print("GPU was selected but is not available. Falling back to CPU.")
         self.class_to_idx = class_to_idx  # Class index mapping
         self.model = self._create_model(arch, hidden_units)
         self.criterion = nn.NLLLoss()
@@ -115,6 +121,10 @@ class ModelManager:
 
     @classmethod
     def load_checkpoint(cls, checkpoint_path, gpu):
+
+        # Allowlist for the Sequential class for safe unpickling with weights_only=True
+        #torch.serialization.add_safe_globals([set, nn.Sequential, nn.Linear, nn.ReLU, nn.Dropout, nn.LogSoftmax])
+
         # Load a checkpoint from a file
         checkpoint = torch.load(checkpoint_path, weights_only=False)
         class_to_idx = checkpoint['class_to_idx']
