@@ -1,12 +1,21 @@
+"""
+Module docstring placeholder
+"""
+import json
+import warnings
 import torch
 from torch import nn, optim
 from torchvision import models
-import json
-import warnings
 
 
 class ModelManager:
+    """
+    Class docstring placeholder
+    """
     def __init__(self, arch, hidden_units, learning_rate, class_to_idx, device_type):
+        """
+        Class docstring placeholder
+        """
         # Set the device based on device_type (cpu or gpu)
         if device_type == 'gpu':
             if torch.cuda.is_available():
@@ -34,7 +43,11 @@ class ModelManager:
         self.model.to(self.device)
 
     def _create_model(self, arch, hidden_units):
-        # Normalize the architecture name to handle variations like 'VGG16' and 'vgg16'
+        """
+        Function docstring placeholder
+        """
+        # Normalize the architecture name to handle variations like 'VGG16'
+        # and 'vgg16'
         arch = arch.lower()
 
         # For newer versions of torchvision
@@ -51,7 +64,7 @@ class ModelManager:
                     nn.Linear(model.classifier[0].in_features, hidden_units),
                     nn.ReLU(),
                     nn.Dropout(0.2),
-                    nn.Linear(hidden_units, len(self.class_to_idx)),  # Use self.class_to_idx for size
+                    nn.Linear(hidden_units, len(self.class_to_idx)),
                     nn.LogSoftmax(dim=1)
                 )
                 model.classifier = classifier
@@ -62,26 +75,30 @@ class ModelManager:
                 for param in model.parameters():
                     param.requires_grad = False
 
-                # ResNet50 uses `fc` (fully connected layer) instead of `classifier`
+                # ResNet50 uses `fc` instead of `classifier`
                 model.fc = nn.Sequential(
                     nn.Linear(model.fc.in_features, hidden_units),
                     nn.ReLU(),
                     nn.Dropout(0.2),
-                    nn.Linear(hidden_units, len(self.class_to_idx)),  # Use self.class_to_idx for size
+                    nn.Linear(hidden_units, len(self.class_to_idx)),
                     nn.LogSoftmax(dim=1)
                 )
             else:
                 raise ValueError(f"Architecture {arch} not supported or weights not available.")
         else:
-            # For older versions of torchvision that use 'pretrained=True' instead of weights
+            # For older versions of torchvision that use 'pretrained=True'
+            # instead of weights
             model = getattr(models, arch)(pretrained=True)
 
         print(f"Classifier model loaded with architecture {arch} and hidden units {hidden_units}.")
-        
+
         return model
 
 
     def train(self, dataloaders, epochs, print_every=5):
+        """
+        Function docstring placeholder
+        """
         print("Training commencing...")
         steps = 0
         running_loss = 0
@@ -139,7 +156,7 @@ class ModelManager:
                           f'Train loss: {running_loss/print_every:.3f}.. '
                           f'Validation loss: {validation_loss/len(dataloaders["valid"]):.3f}.. '
                           f'Validation accuracy: {accuracy/len(dataloaders["valid"]):.3f}')
-                    
+
                     running_loss = 0
 
                     # Set model back to training mode
@@ -147,8 +164,11 @@ class ModelManager:
         print("Training complete!")
 
     def save_checkpoint(self, save_dir):
+        """
+        Function docstring placeholder
+        """
         print(f"Saving checkpoint to: {save_dir}")
-        
+
         # Save the appropriate classifier depending on the architecture
         if self.arch == 'vgg16':
             classifier = self.model.classifier
@@ -166,13 +186,16 @@ class ModelManager:
             'learning_rate': self.learning_rate,
             'classifier': classifier  # Save the correct classifier
         }
-        
+
         torch.save(checkpoint, f"{save_dir}/checkpoint.pth")
         print("Checkpoint saved!")
 
 
     @classmethod
     def load_checkpoint(cls, checkpoint_path, device_type):
+        """
+        Function docstring placeholder
+        """
 
         # Determine map_location based on device_type
         if device_type == 'gpu' and torch.cuda.is_available():
@@ -191,14 +214,14 @@ class ModelManager:
         # Extract necessary information
         class_to_idx = checkpoint['class_to_idx']
         arch = checkpoint.get('architecture', 'vgg16')  # Default to vgg16 if not found
-        
+
         # Debugging step: Print out the architecture to make sure it is correct
         print(f"Loaded architecture from checkpoint: {arch}")
 
         # Normalize the architecture name
         if arch.lower() == 'vgg':
             arch = 'vgg16'
-        
+
         hidden_units = checkpoint.get('hidden_units', 4096)
         learning_rate = checkpoint.get('learning_rate', 0.001)
 
@@ -213,6 +236,9 @@ class ModelManager:
 
 
     def predict(self, image, top_k):
+        """
+        Function docstring placeholder
+        """
         self.model.eval()
         image = image.to(self.device)
         with torch.no_grad():
@@ -221,15 +247,21 @@ class ModelManager:
             return probs.exp().cpu().numpy()[0], classes.cpu().numpy()[0]
 
     def load_category_names(self, json_file):
+        """
+        Function docstring placeholder
+        """
         # Load mapping from class index to category names
         with open(json_file, 'r') as f:
             return json.load(f)
 
     def map_class_to_name(self, class_indices, category_names):
+        """
+        Function docstring placeholder
+        """
         # Invert class_to_idx to get idx_to_class mapping
         idx_to_class = {v: k for k, v in self.class_to_idx.items()}
-        
+
         # Map the predicted class indices to the actual category names
         class_names = [category_names[idx_to_class[i]] for i in class_indices]
-        
+
         return class_names
