@@ -34,3 +34,4 @@ Image-Classifier/
 5. Jupyter notebook doc
 6. Other doco
 7. Fix setup scripts (auto activate and output alignment)
+8. a way to trigger help if ran with no flags

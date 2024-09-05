@@ -134,10 +134,10 @@ class ModelManager:
         torch.serialization.add_safe_globals([set, nn.Sequential, nn.Linear, nn.ReLU, nn.Dropout, nn.LogSoftmax])
 
         # Load a checkpoint from a file
-        checkpoint = torch.load(checkpoint_path, weights_only=True)
+        checkpoint = torch.load(checkpoint_path, map_location=device_type)
         class_to_idx = checkpoint['class_to_idx']
         arch = checkpoint.get('architecture', 'vgg16')  # Default to vgg16 if not found
-        hidden_units = checkpoint.get('hidden_units', 512)  # Default to 512 if not found
+        hidden_units = checkpoint.get('hidden_units', 4096)  # Default to 512 if not found
         learning_rate = checkpoint.get('learning_rate', 0.001)  # Default to 0.001 if not found
         
         # Create a new ModelManager instance with the saved hyperparameters
