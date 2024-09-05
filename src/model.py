@@ -31,6 +31,9 @@ class ModelManager:
         self.model.to(self.device)
 
     def _create_model(self, arch, hidden_units):
+        # Normalise the architecture name
+        arch = arch.lower()
+        
         # For newer versions of torchvision
         if hasattr(models, arch):
             # Check if weights need to be loaded explicitly for newer versions
