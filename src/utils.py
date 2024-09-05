@@ -86,7 +86,7 @@ def setup_logging(console_level=logging.INFO):
     logger.addHandler(console_handler)
     
     # Format the log output
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    formatter = logging.Formatter("PLEASE NOTE" '%(message)s')
     console_handler.setFormatter(formatter)
 
     return logger
