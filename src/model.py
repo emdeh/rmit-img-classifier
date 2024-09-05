@@ -30,40 +30,52 @@ class ModelManager:
         self.model.to(self.device)
 
     def _create_model(self, arch, hidden_units):
-        # Normalise the architecture name
+        # Normalize the architecture name to handle variations like 'VGG16' and 'vgg16'
         arch = arch.lower()
-        
+
         # For newer versions of torchvision
         if hasattr(models, arch):
             # Check if weights need to be loaded explicitly for newer versions
             if arch == 'vgg16':
                 model = models.vgg16(weights=models.VGG16_Weights.DEFAULT)
+                # Freeze parameters so we don't backpropagate through them
+                for param in model.parameters():
+                    param.requires_grad = False
+
+                # Create a new classifier for VGG16
+                classifier = nn.Sequential(
+                    nn.Linear(model.classifier[0].in_features, hidden_units),
+                    nn.ReLU(),
+                    nn.Dropout(0.2),
+                    nn.Linear(hidden_units, len(self.class_to_idx)),  # Use self.class_to_idx for size
+                    nn.LogSoftmax(dim=1)
+                )
+                model.classifier = classifier
+
             elif arch == 'resnet50':
                 model = models.resnet50(weights=models.ResNet50_Weights.DEFAULT)
+                # Freeze parameters so we don't backpropagate through them
+                for param in model.parameters():
+                    param.requires_grad = False
+
+                # ResNet50 uses `fc` (fully connected layer) instead of `classifier`
+                model.fc = nn.Sequential(
+                    nn.Linear(model.fc.in_features, hidden_units),
+                    nn.ReLU(),
+                    nn.Dropout(0.2),
+                    nn.Linear(hidden_units, len(self.class_to_idx)),  # Use self.class_to_idx for size
+                    nn.LogSoftmax(dim=1)
+                )
             else:
                 raise ValueError(f"Architecture {arch} not supported or weights not available.")
         else:
             # For older versions of torchvision that use 'pretrained=True' instead of weights
             model = getattr(models, arch)(pretrained=True)
 
+        print(f"Classifier model loaded with architecture {arch} and hidden units {hidden_units}.")
         
-        # Freeze parameters so we don't backpropagate through them
-        for param in model.parameters():
-            param.requires_grad = False
-
-        # Create a new classifier
-        classifier = nn.Sequential(
-            nn.Linear(model.classifier[0].in_features, hidden_units),
-            nn.ReLU(),
-            nn.Dropout(0.2),
-            nn.Linear(hidden_units, len(self.class_to_idx)),  # Use self.class_to_idx for size
-            nn.LogSoftmax(dim=1)
-        )
-
-        model.classifier = classifier
-        print("Classifier model loaded with following hyperparameters:")
-        print(f"{classifier}")
         return model
+
 
     def train(self, dataloaders, epochs, print_every=5):
         print("Training commencing...")
