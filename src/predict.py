@@ -1,8 +1,14 @@
+"""
+Module docstring placeholder
+"""
 import argparse
 from model import ModelManager
 from utils import ImageProcessor
 
 def main(**kwargs):
+    """
+    Function docstring placeholder
+    """
     image_path = kwargs['image_path']
     checkpoint_path = kwargs['checkpoint_path']
     top_k = kwargs['top_k']
@@ -11,7 +17,7 @@ def main(**kwargs):
 
     # Load model from checkpoint
     model_manager = ModelManager.load_checkpoint(checkpoint_path, device_type)
-    
+
     # Load category names (if provided)
     category_names = None
     if category_names_path:
@@ -67,10 +73,10 @@ if __name__ == "__main__":
         help='Path to a JSON file mapping categories to flower names. Example: -n /path/to/cat_to_name.json'
     )
     parser.add_argument(
-        '-d', '--device', 
+        '-d', '--device',
         default='gpu',
-        type=str, 
-        choices=['cpu', 'gpu'], 
+        type=str,
+        choices=['cpu', 'gpu'],
         help='Device to use for inference: "cpu" or "gpu". Example: -d gpu'
     )
 
