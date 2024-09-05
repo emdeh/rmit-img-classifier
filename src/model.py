@@ -251,7 +251,7 @@ class ModelManager:
         Function docstring placeholder
         """
         # Load mapping from class index to category names
-        with open(json_file, 'r') as f:
+        with open(json_file, 'r', encoding='utf-8') as f:
             return json.load(f)
 
     def map_class_to_name(self, class_indices, category_names):
