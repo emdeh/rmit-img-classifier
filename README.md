@@ -88,7 +88,6 @@ Image-Classifier/
 
 # TO-DO LIST
 
-1. Docstrings
 3. Other comments
 4. Jupyter notebook reqs
 5. Jupyter notebook doc

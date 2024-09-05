@@ -18,7 +18,9 @@ Dependencies:
 
 import torch
 from torchvision import datasets, transforms
+
 from PIL import Image
+
 
 class DataLoader:
     """
