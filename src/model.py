@@ -5,6 +5,8 @@ import json
 import warnings
 from utils import setup_logging
 import logging
+from packaging import version
+import torchvision
 
 class ModelManager:
     def __init__(self, arch, hidden_units, learning_rate, class_to_idx, device_type):
@@ -31,8 +33,13 @@ class ModelManager:
         self.model.to(self.device)
 
     def _create_model(self, arch, hidden_units):
-        # Load a pre-trained model
-        model = getattr(models, arch)(weights='DEFAULT')
+        # Check the torchvision version
+        if version.parse(torchvision.__version__) >= version.parse("0.13"):
+            # For newer versions of torchvision
+            model = getattr(models, arch)(weights='DEFAULT')
+        else:
+            # For older versions of torchvision
+            model = getattr(models, arch)(pretrained=True)
 
         # Freeze parameters so we don't backpropagate through them
         for param in model.parameters():
