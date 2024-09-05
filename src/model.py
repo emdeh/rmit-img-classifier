@@ -2,6 +2,9 @@ import torch
 from torch import nn, optim
 from torchvision import models
 import json
+import warnings
+from utils import setup_logging
+import logging
 
 class ModelManager:
     def __init__(self, arch, hidden_units, learning_rate, class_to_idx, device_type):
@@ -130,11 +133,24 @@ class ModelManager:
 
     @classmethod
     def load_checkpoint(cls, checkpoint_path, device_type):
-        # Allowlist for the Sequential class for safe unpickling with weights_only=True
-        torch.serialization.add_safe_globals([set, nn.Sequential, nn.Linear, nn.ReLU, nn.Dropout, nn.LogSoftmax])
+        # Setup logger to explain message
+        logger = setup_logging()
 
-        # Load a checkpoint from a file
-        checkpoint = torch.load(checkpoint_path, map_location=device_type)
+        with warnings.catch_warnings(record=True,) as w:
+                warnings.simplefilter("ignore")
+
+                # Allowlist for the Sequential class for safe unpickling with weights_only=True
+                torch.serialization.add_safe_globals([set, nn.Sequential, nn.Linear, nn.ReLU, nn.Dropout, nn.LogSoftmax])
+
+                # Load the full checkpoint from a file
+                checkpoint = torch.load(checkpoint_path, map_location=device_type)
+
+        logger.info("\nCheckpoint loaded with weights_only=False.\n"
+                    "This can lead to arbitrary code execution.\n"
+                    "Only known torch objects are unpickled as a safeguard,\n"
+                    "but you should only load trusted checkpoints.\n")             
+
+        # Extract just the necessary info
         class_to_idx = checkpoint['class_to_idx']
         arch = checkpoint.get('architecture', 'vgg16')  # Default to vgg16 if not found
         hidden_units = checkpoint.get('hidden_units', 4096)  # Default to 512 if not found
@@ -142,7 +158,10 @@ class ModelManager:
         
         # Create a new ModelManager instance with the saved hyperparameters
         model_manager = cls(arch, hidden_units, learning_rate, class_to_idx, device_type)
+
+        #Load the state_dict from checkpoint only
         model_manager.model.load_state_dict(checkpoint['state_dict'])
+
         return model_manager
 
     def predict(self, image, top_k):

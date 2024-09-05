@@ -1,6 +1,8 @@
+import os
 import torch
 from torchvision import datasets, transforms
 from PIL import Image
+import logging
 
 class DataLoader:
     def __init__(self, data_dir):
@@ -57,3 +59,34 @@ class ImageProcessor:
         ])
         print("Image preprocessing complete.")
         return preprocess(image)
+
+
+# Custom logging setup
+def setup_logging(console_level=logging.INFO):
+    """
+    Sets up logging to the console.
+    
+    Args:
+    - console_level (int): The logging level for console output (default: logging.INFO).
+    """
+    # Create the logger
+    logger = logging.getLogger()
+
+    # Clear existing handlers to avoid duplicates
+    if logger.hasHandlers():
+        logger.handlers.clear()
+
+    logger.setLevel(logging.DEBUG)  # Capture all messages
+
+    # Create console handler for logging to the console
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(console_level)
+
+    # Add the console handler to the logger
+    logger.addHandler(console_handler)
+    
+    # Format the log output
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    console_handler.setFormatter(formatter)
+
+    return logger
