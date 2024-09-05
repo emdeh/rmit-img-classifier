@@ -1,3 +1,6 @@
+"""
+Module docstring placeholder
+"""
 import os
 import torch
 from torchvision import datasets, transforms
@@ -5,10 +8,16 @@ from PIL import Image
 import logging
 
 class DataLoader:
+    """
+    class docstring placeholder
+    """
     def __init__(self, data_dir):
         self.data_dir = data_dir
 
     def load_data(self):
+        """
+        Function docstring placeholder
+        """
         train_dir = f"{self.data_dir}"
         valid_dir = f"{self.data_dir}"
 
@@ -47,8 +56,14 @@ class DataLoader:
         return dataloaders, image_datasets['train'].class_to_idx
 
 class ImageProcessor:
+    """
+    Class docstring placeholder
+    """
     @staticmethod
     def process_image(image_path):
+        """
+        Function docstring placeholder
+        """
         image = Image.open(image_path)
         print("Image pre-processing starting...")
         preprocess = transforms.Compose([
