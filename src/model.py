@@ -31,11 +31,8 @@ class ModelManager:
         self.model.to(self.device)
 
     def _create_model(self, arch, hidden_units):
-        # Create model based on architecture (used during training)
-        if arch == 'vgg16':
-            model = getattr(models, arch)(weights='DEFAULT')
-        else:
-            raise ValueError(f"Unsupported architecture: {arch}")
+        # Load a pre-trained model
+        model = getattr(models, arch)(weights='DEFAULT')
 
         # Freeze parameters so we don't backpropagate through them
         for param in model.parameters():
@@ -134,44 +131,33 @@ class ModelManager:
         torch.save(checkpoint, f"{save_dir}/checkpoint.pth")
         print("Checkpoint saved!")
         # Move back to the original ddevice after savings
-        self.model.to(self.device)
+        #self.model.to(self.device)
 
     @classmethod
     def load_checkpoint(cls, checkpoint_path, device_type):
         # Setup logger to explain message
         logger = setup_logging()
 
-        # Explicitly set the device based on the device_type
-        if device_type == 'gpu' and torch.cuda.is_available():
-            map_location = torch.device('cuda')
-        else:
-            map_location = torch.device('cpu')
+        # Allowlist for the Sequential class for safe unpickling with weights_only=True
+        torch.serialization.add_safe_globals([set, nn.Sequential, nn.Linear, nn.ReLU, nn.Dropout, nn.LogSoftmax])
 
-        try:
-            # Load the checkpoint and map the model to the correct device
-            checkpoint = torch.load(checkpoint_path, map_location=map_location)
+        # Load the full checkpoint from a file
+        checkpoint = torch.load(checkpoint_path, map_location=device_type)
 
-            logger.info("Checkpoint successfully loaded.")
+        # Extract necessary info from the checkpoint
+        class_to_idx = checkpoint['class_to_idx']
+        arch = checkpoint.get('architecture', 'vgg16')  # Default to vgg16 if not found
+        hidden_units = checkpoint.get('hidden_units', 4096)  # Default to 4096 if not found
+        learning_rate = checkpoint.get('learning_rate', 0.001)  # Default to 0.001 if not found
 
-            # Extract necessary info from the checkpoint
-            class_to_idx = checkpoint['class_to_idx']
-            arch = checkpoint.get('architecture', 'vgg16')  # Default to vgg16 if not found
-            hidden_units = checkpoint.get('hidden_units', 4096)  # Default to 4096 if not found
-            learning_rate = checkpoint.get('learning_rate', 0.001)  # Default to 0.001 if not found
+        # Create a new ModelManager instance with the saved hyperparameters
+        model_manager = cls(arch, hidden_units, learning_rate, class_to_idx, device_type)
 
-            # Create a new ModelManager instance with the saved hyperparameters
-            model_manager = cls(arch, hidden_units, learning_rate, class_to_idx, device_type)
+        # Load the state_dict into the model
+        model_manager.model.load_state_dict(checkpoint['state_dict'])
 
-            # Load the state_dict into the model
-            model_manager.model.load_state_dict(checkpoint['state_dict'])
-
-            # Return the loaded model manager
-            return model_manager
-
-        except Exception as e:
-            logger.error(f"Error loading checkpoint: {str(e)}")
-            raise
-
+        # Return the loaded model manager
+        return model_manager
 
     def predict(self, image, top_k):
         self.model.eval()
