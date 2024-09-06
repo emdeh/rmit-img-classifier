@@ -70,19 +70,19 @@ class ModelManager:
         """
         if arch not in ['vgg16', 'resnet50']:
             raise ValueError(f"Unsupported architecture: {arch}")
-        
+
         if not isinstance(hidden_units, int) or hidden_units <= 0:
             raise ValueError("Hidden units should be a positive integer.")
-        
+
         if not isinstance(learning_rate, float) or learning_rate <= 0:
             raise ValueError("Learning rate should be a positive float.")
-        
+
         if not isinstance(class_to_idx, dict):
             raise ValueError("class_to_idx should be a dictionary.")
-    
+
         if device_type not in ['cpu', 'gpu']:
             raise ValueError(f"Unsupported device type: {device_type}")
-        
+
         # Set the device based on device_type (cpu or gpu)
         if device_type == 'gpu':
             if torch.cuda.is_available():
@@ -102,7 +102,7 @@ class ModelManager:
         self.learning_rate = learning_rate
         self.model = self._create_model(arch, hidden_units)
         self.criterion = nn.NLLLoss()
-        
+
         # Setup optimiser based on the architecture selected
         if arch == 'vgg16':
             self.optimizer = optim.Adam(self.model.classifier.parameters(), lr=learning_rate)
@@ -152,7 +152,7 @@ class ModelManager:
                     nn.LogSoftmax(dim=1)
                 )
                 model.classifier = classifier
-            
+
             elif arch == 'resnet50':
                 # ResNet50 uses `fc` instead of `classifier`
                 model.fc = nn.Sequential(
@@ -165,7 +165,7 @@ class ModelManager:
 
             print(f"Classifier model loaded with architecture {arch} and hidden units {hidden_units}.")
             return model
-            
+
         except Exception as e:
             raise RuntimeError(f"Failed to create model: {e}")
 
@@ -185,10 +185,10 @@ class ModelManager:
         """
         if not isinstance(dataloaders, dict) or 'train' not in dataloaders or 'valid' not in dataloaders:
             raise ValueError("Dataloaders must be a dictionary containing 'train' and 'valid' keys.")
-        
+
         if not isinstance(epochs, int) or epochs <= 0:
             raise ValueError("Epochs should be a positive integer.")
-    
+
         print("Training commencing...")
 
         steps = 0
@@ -275,7 +275,7 @@ class ModelManager:
         print(f"Saving checkpoint to: {save_dir}")
         if not os.path.isdir(save_dir):
             raise FileNotFoundError(f"Save directory does not exist: {save_dir}")
-        
+
         #Save the appropriate classifier depending on the architecture
         if self.arch == 'vgg16':
             classifier = self.model.classifier
@@ -283,7 +283,7 @@ class ModelManager:
             classifier = self.model.fc
         else:
             raise ValueError(f"Architecture {self.arch} not supported for saving checkpoints.")
-    
+
         try:
         # Save checkpoint with necessary metadata
             checkpoint = {
@@ -302,7 +302,7 @@ class ModelManager:
         except Exception as e:
             raise RuntimeError(f"Failed to save checkpoint: {e}")
 
-    @classmethod 
+    @classmethod
     # Decorator needed because the method is invoked on the class itself instead
     # of an object of the class. This allows it to return a new instance of the class.
 
@@ -321,7 +321,7 @@ class ModelManager:
         """
         if not os.path.isfile(checkpoint_path):
             raise FileNotFoundError(f"Checkpoint file not found: {checkpoint_path}")
-        
+
         # Determine map_location based on device_type
         if device_type == 'gpu' and torch.cuda.is_available():
             map_location = 'cuda'
@@ -378,8 +378,8 @@ class ModelManager:
                 - classes (numpy.ndarray): Indices of the top K predicted classes.
         """
         if not isinstance(top_k, int) or top_k <= 0:
-            raise ValueError("top_k must be a positive integer.") 
-        
+            raise ValueError("top_k must be a positive integer.")
+
         # Set model to evaluation mode.
         try:
             self.model.eval()
@@ -391,7 +391,7 @@ class ModelManager:
                 probs, classes = output.topk(top_k, dim=1)
         except Exception as e:
             raise RuntimeError(f"Prediction failed: {e}")
-        
+
         return probs.exp().cpu().numpy()[0], classes.cpu().numpy()[0]
 
     def load_category_names(self, json_file):
@@ -406,14 +406,14 @@ class ModelManager:
         """
         if not os.path.isfile(json_file):
             raise FileNotFoundError(f"JSON file not found: {json_file}")
-    
+
         # Load mapping from class index to category names
         try:
             with open(json_file, 'r', encoding='utf-8') as f:
                 category_names = json.load(f)
         except json.JSONDecodeError as e:
             raise RuntimeError(f"Error reading JSON file: {e}")
-    
+
         return category_names
 
     def map_class_to_name(self, class_indices, category_names):
