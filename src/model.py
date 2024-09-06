@@ -429,13 +429,12 @@ class ModelManager:
         Returns:
             list: A list of category names corresponding to the predicted class indices.
         """
-        
+
         # Invert class_to_idx to get idx_to_class mapping
         idx_to_class = {v: k for k, v in self.class_to_idx.items()}
-        print(type(idx_to_class))
+
 
         # Map the predicted class indices to the actual category names
         class_names = [category_names[idx_to_class[i]] for i in class_indices]
-        print(type(class_names))
 
         return class_names
