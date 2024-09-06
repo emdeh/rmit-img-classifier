@@ -63,7 +63,10 @@ def main(data_dir, save_dir, arch, learning_rate, hidden_units, epochs, device_t
     # Check/create the save directory
     if not os.path.exists(save_dir):
         try:
+            print(f"The checkpoint directory passed {save_dir} does not exist")
+            print(f"Attempting to create it...\n")
             os.makedirs(save_dir)
+            print(f"Created checkpoint directory: {save_dir}\n")
         except Exception as e:
             raise OSError(f"Could not create save directory: {save_dir}. Error: {e}")
     
@@ -162,7 +165,7 @@ if __name__ == "__main__":
             epochs=args.epochs,
             device_type=args.device
         )
-        
+
     except Exception as e:
         print(f"An error occurred: {e}")
         sys.exit(1)
