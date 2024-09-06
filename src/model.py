@@ -186,21 +186,21 @@ class ModelManager:
 
                 # Move input and label tensors to the appropriate device (GPU/CPU)
                 inputs, labels = inputs.to(self.device), labels.to(self.device)
-                #print("Debug: inputs and labels moved to device")
+                # print("Debug: inputs and labels moved to device")
 
                 # Zero the gradients
                 self.optimizer.zero_grad()
-                #print("Debug: gradients zeroed")
+                # print("Debug: gradients zeroed")
 
                 # Forward pass
                 outputs = self.model(inputs)
                 loss = self.criterion(outputs, labels)
-                #print("Debug: forward pass")
+                # print("Debug: forward pass")
 
-                # Backward pass and optimize
+                # Backward pass and optimise
                 loss.backward()
                 self.optimizer.step()
-                #print("Debug: backward pass and optimise")
+                # print("Debug: backward pass and optimise")
 
                 running_loss += loss.item()
 
@@ -210,7 +210,7 @@ class ModelManager:
                     self.model.eval()
                     validation_loss = 0
                     accuracy = 0
-                    #print("Debug: in validation if statement...")
+                    # print("Debug: in validation if statement...")
 
                     # Disable gradient calculation for validation
                     with torch.no_grad():
@@ -225,7 +225,7 @@ class ModelManager:
                             top_p, top_class = ps.topk(1, dim=1)
                             equals = top_class == labels.view(*top_class.shape)
                             accuracy += torch.mean(equals.type(torch.FloatTensor)).item()
-                            #print("Debug: Calculated accuracy")
+                            # print("Debug: Calculated accuracy")
 
                     # Print statistics
                     print(f'Epoch {epoch+1}/{epochs}.. '
@@ -253,6 +253,7 @@ class ModelManager:
         print(f"Saving checkpoint to: {save_dir}")
 
         # Save the appropriate classifier depending on the architecture
+        # TODO: Is there a better way to handle this?
         if self.arch == 'vgg16':
             classifier = self.model.classifier
         elif self.arch == 'resnet50':
@@ -308,10 +309,10 @@ class ModelManager:
         class_to_idx = checkpoint['class_to_idx']
         arch = checkpoint.get('architecture', 'vgg16')  # Default to vgg16 if not found
 
-        # Debugging step: Print out the architecture to make sure it is correct
         print(f"Loaded architecture from checkpoint: {arch}")
 
-        # Normalize the architecture name
+        # Normalise the architecture name
+        # TODO: May not be required after all.
         if arch.lower() == 'vgg':
             arch = 'vgg16'
 
@@ -340,7 +341,10 @@ class ModelManager:
                 - probs (numpy.ndarray): Probabilities of the top K predicted classes.
                 - classes (numpy.ndarray): Indices of the top K predicted classes.
         """
+        # Set model to evaluation mode.
         self.model.eval()
+
+        # Move image to device
         image = image.to(self.device)
         with torch.no_grad():
             output = self.model(image.unsqueeze(0))
