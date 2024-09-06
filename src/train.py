@@ -32,6 +32,7 @@ Dependencies:
 """
 
 import sys
+import os
 import argparse
 
 from model import ModelManager
@@ -54,18 +55,39 @@ def main(data_dir, save_dir, arch, learning_rate, hidden_units, epochs, device_t
     Returns:
         None
     """
-    # Initialise DataLoader class
-    data_loader = DataLoader(data_dir)
-    dataloaders, class_to_idx = data_loader.load_data()
 
-    # Initialise ModelManager class
-    model_manager = ModelManager(arch, hidden_units, learning_rate, class_to_idx, device_type)
+    # Check the data directory exists
+    if not os.path.exists(data_dir):
+        raise FileNotFoundError(f"The specified data directory does not exist: {data_dir}")
+    
+    # Check/create the save directory
+    if not os.path.exists(save_dir):
+        try:
+            os.makedirs(save_dir)
+        except Exception as e:
+            raise OSError(f"Could not create save directory: {save_dir}. Error: {e}")
+    
+    try:
+        # Initialise DataLoader class
+        data_loader = DataLoader(data_dir)
+        dataloaders, class_to_idx = data_loader.load_data()
+    except Exception as e:
+        raise RuntimeError(f"Error loading data from {data_dir}: {e}")
+    
+    try:
+        # Initialise ModelManager class
+        model_manager = ModelManager(arch, hidden_units, learning_rate, class_to_idx, device_type)
 
-    # Train the model
-    model_manager.train(dataloaders, epochs)
+        # Train the model
+        model_manager.train(dataloaders, epochs)
 
-    # Save checkpoint
-    model_manager.save_checkpoint(save_dir)
+        # Save checkpoint
+        model_manager.save_checkpoint(save_dir)
+
+    except RuntimeError as e:
+        raise RuntimeError(f"Error during model training: {e}")
+    except Exception as e:
+        raise Exception(f"Unexpected error: {e}")
 
 
 if __name__ == "__main__":
@@ -128,13 +150,19 @@ if __name__ == "__main__":
     # Parse arguments
     args = parser.parse_args()
 
-    # Call main function
-    main(
-        data_dir=args.data_dir,
-        save_dir=args.save_dir,
-        arch=args.arch,
-        learning_rate=args.learning_rate,
-        hidden_units=args.hidden_units,
-        epochs=args.epochs,
-        device_type=args.device
-    )
+    try:
+
+        # Call main function
+        main(
+            data_dir=args.data_dir,
+            save_dir=args.save_dir,
+            arch=args.arch,
+            learning_rate=args.learning_rate,
+            hidden_units=args.hidden_units,
+            epochs=args.epochs,
+            device_type=args.device
+        )
+        
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        sys.exit(1)
