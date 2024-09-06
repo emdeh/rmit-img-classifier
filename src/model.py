@@ -275,7 +275,10 @@ class ModelManager:
         print("Checkpoint saved!")
 
 
-    @classmethod
+    @classmethod 
+    # Decorator needed because the method is invoked on the class itself instead
+    # of an object of the class. This allows it to return a new instance of the class.
+
     def load_checkpoint(cls, checkpoint_path, device_type):
         """
         Loads a model checkpoint from the specified path and restores the model's state, 
