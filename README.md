@@ -88,6 +88,6 @@ Image-Classifier/
 
 # TO-DO LIST
 
-4. Jupyter notebook reqs
-5. Jupyter notebook doc
+- Jupyter notebook reqs
+- Test on remote
 - Update prints with logging statements.
