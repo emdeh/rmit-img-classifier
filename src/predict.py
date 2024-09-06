@@ -50,16 +50,17 @@ def main(**kwargs):
     Returns:
         None
     """
+    # Map arguments to variables
     image_path = kwargs['image_path']
     checkpoint_path = kwargs['checkpoint_path']
     top_k = kwargs['top_k']
     category_names_path = kwargs['category_names_path']
     device_type = kwargs['device']
 
-    # Load model from checkpoint
+    # Load a model from checkpoint
     model_manager = ModelManager.load_checkpoint(checkpoint_path, device_type)
 
-    # Load category names (if provided)
+    # Load category names
     category_names = None
     if category_names_path:
         category_names = model_manager.load_category_names(category_names_path)
@@ -71,7 +72,7 @@ def main(**kwargs):
     # Predict the top K classes
     probs, class_indices = model_manager.predict(image, top_k)
 
-    # Map class indices to flower names if category names are provided
+    # Map class indices to flower names
     if category_names:
         class_names = model_manager.map_class_to_name(class_indices, category_names)
         print(f"Predicted Classes: {class_names}")
@@ -90,7 +91,7 @@ if __name__ == "__main__":
         '''
     )
 
-    # Optional arguments with short flags
+    # Arguments with flags
     parser.add_argument(
         '-i', '--image_path', 
         required=True,
@@ -129,7 +130,7 @@ if __name__ == "__main__":
     # Parse arguments
     args = parser.parse_args()
 
-    # Call main with kwargs
+    # Call main function
     main(
         image_path=args.image_path,
         checkpoint_path=args.checkpoint,

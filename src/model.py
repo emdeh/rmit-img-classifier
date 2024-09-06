@@ -81,13 +81,14 @@ class ModelManager:
             print("CPU explicitly selected. Running on CPU.")
 
         # Model setup
-        self.class_to_idx = class_to_idx  # Class index mapping
+        self.class_to_idx = class_to_idx 
         self.arch = arch
         self.hidden_units = hidden_units
         self.learning_rate = learning_rate
         self.model = self._create_model(arch, hidden_units)
         self.criterion = nn.NLLLoss()
-        # Setup optimizer based on the architecture
+        
+        # Setup optimiser based on the architecture selected
         if arch == 'vgg16':
             self.optimizer = optim.Adam(self.model.classifier.parameters(), lr=learning_rate)
         elif arch == 'resnet50':
@@ -106,16 +107,18 @@ class ModelManager:
         Returns:
             torch.nn.Module: The model with the updated classifier.
         """
-        # Normalize the architecture name to handle variations like 'VGG16'
-        # and 'vgg16'
+        # Normalise the architecture name to handle variations like 'VGG16'
+        # and 'vgg16'.
+        # TODO: May be redundant but currently to scared to change anything...
         arch = arch.lower()
 
-        # For newer versions of torchvision
+
         if hasattr(models, arch):
-            # Check if weights need to be loaded explicitly for newer versions
+        # TODO: Potential redundant code that could be refactored.
             if arch == 'vgg16':
                 model = models.vgg16(weights=models.VGG16_Weights.DEFAULT)
-                # Freeze parameters so we don't backpropagate through them
+
+                # Freeze parameters to stop backpropagation
                 for param in model.parameters():
                     param.requires_grad = False
 
@@ -131,10 +134,12 @@ class ModelManager:
 
             elif arch == 'resnet50':
                 model = models.resnet50(weights=models.ResNet50_Weights.DEFAULT)
-                # Freeze parameters so we don't backpropagate through them
+                
+                # Freeze parameters to stop backpropagation
                 for param in model.parameters():
                     param.requires_grad = False
 
+                # New classifier for ResNet.
                 # ResNet50 uses `fc` instead of `classifier`
                 model.fc = nn.Sequential(
                     nn.Linear(model.fc.in_features, hidden_units),
@@ -148,6 +153,7 @@ class ModelManager:
         else:
             # For older versions of torchvision that use 'pretrained=True'
             # instead of weights
+            # TODO: May be redundant/better way to handle this.
             model = getattr(models, arch)(pretrained=True)
 
         print(f"Classifier model loaded with architecture {arch} and hidden units {hidden_units}.")

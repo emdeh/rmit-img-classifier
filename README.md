@@ -91,5 +91,4 @@ Image-Classifier/
 3. Other comments
 4. Jupyter notebook reqs
 5. Jupyter notebook doc
-6. Other doco
 13. error handling

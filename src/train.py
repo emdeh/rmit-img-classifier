@@ -54,11 +54,11 @@ def main(data_dir, save_dir, arch, learning_rate, hidden_units, epochs, device_t
     Returns:
         None
     """
-    # Initialize DataLoader class
+    # Initialise DataLoader class
     data_loader = DataLoader(data_dir)
     dataloaders, class_to_idx = data_loader.load_data()
 
-    # Initialize ModelManager class
+    # Initialise ModelManager class
     model_manager = ModelManager(arch, hidden_units, learning_rate, class_to_idx, device_type)
 
     # Train the model
@@ -77,7 +77,7 @@ if __name__ == "__main__":
         '''
     )
 
-    # Required arguments with short flags
+    # Arguments with short flags
     parser.add_argument(
         '-dir', '--data_dir', 
         required=True,
