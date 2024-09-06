@@ -28,6 +28,7 @@ Dependencies:
     - sys: Provides system-specific functions for handling command-line input.
 """
 
+import os
 import sys
 import argparse
 
@@ -57,25 +58,51 @@ def main(**kwargs):
     category_names_path = kwargs['category_names_path']
     device_type = kwargs['device']
 
+    # Check if image file exists
+    if not os.path.isfile(image_path):
+        raise FileNotFoundError(f"Image file not found: {image_path}")
+
+    # Check if checkpoint file exists
+    if not os.path.isfile(checkpoint_path):
+        raise FileNotFoundError(f"Checkpoint file not found: {checkpoint_path}")
+
     # Load a model from checkpoint
-    model_manager = ModelManager.load_checkpoint(checkpoint_path, device_type)
+    try:
+        model_manager = ModelManager.load_checkpoint(checkpoint_path, device_type)
+    except Exception as e:
+        raise RuntimeError(f"Failed to load model checkpoint: {e}")
 
     # Load category names
     category_names = None
     if category_names_path:
-        category_names = model_manager.load_category_names(category_names_path)
+        if not os.path.isfile(category_names_path):
+            raise FileNotFoundError(f"Category names file not found: {category_names_path}")
+        
+        try:
+            category_names = model_manager.load_category_names(category_names_path)
+        except Exception as e:
+            raise RuntimeError(f"Failed to load category names from file: {e}")
 
     # Process the image
-    image_processor = ImageProcessor()
-    image = image_processor.process_image(image_path)
+    try:
+        image_processor = ImageProcessor()
+        image = image_processor.process_image(image_path)
+    except Exception as e:
+        raise RuntimeError(f"Failed to process image: {e}")
 
     # Predict the top K classes
-    probs, class_indices = model_manager.predict(image, top_k)
+    try:
+        probs, class_indices = model_manager.predict(image, top_k)
+    except Exception as e:
+        raise RuntimeError(f"Failed to make prediction: {e}")
 
     # Map class indices to flower names
     if category_names:
-        class_names = model_manager.map_class_to_name(class_indices, category_names)
-        print(f"Predicted Classes: {class_names}")
+        try:
+            class_names = model_manager.map_class_to_name(class_indices, category_names)
+            print(f"Predicted Classes: {class_names}")
+        except Exception as e:
+            raise RuntimeError(f"Failed to map class indices to category names: {e}")
     else:
         print(f"Predicted Classes: {class_indices}")
 
@@ -131,10 +158,14 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Call main function
-    main(
-        image_path=args.image_path,
-        checkpoint_path=args.checkpoint,
-        top_k=args.top_k,
-        category_names_path=args.category_names,
-        device=args.device
-    )
+    try:
+        main(
+            image_path=args.image_path,
+            checkpoint_path=args.checkpoint,
+            top_k=args.top_k,
+            category_names_path=args.category_names,
+            device=args.device
+        )
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        sys.exit(1)

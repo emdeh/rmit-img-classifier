@@ -113,7 +113,7 @@ class ImageProcessor:
                                    into a model.
     """
 
-    def process_image(image_path):
+    def process_image(self, image_path):
         """
         Processes an image for use in the model by applying transformations such as 
         resizing, cropping, converting to a tensor, and normalising the pixel values.
