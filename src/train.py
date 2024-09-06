@@ -70,12 +70,11 @@ def main(data_dir, save_dir, arch, learning_rate, hidden_units, epochs, device_t
         except Exception as e:
             raise OSError(f"Could not create save directory: {save_dir}. Error: {e}")
     
-    try:
-        # Initialise DataLoader class
-        data_loader = DataLoader(data_dir)
-        dataloaders, class_to_idx = data_loader.load_data()
-    except Exception as e:
-        raise RuntimeError(f"Error loading data from {data_dir}: {e}")
+    
+    # Initialise DataLoader class
+    data_loader = DataLoader(data_dir)
+    dataloaders, class_to_idx = data_loader.load_data()
+
     
     try:
         # Initialise ModelManager class
