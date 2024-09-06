@@ -90,3 +90,4 @@ Image-Classifier/
 
 4. Jupyter notebook reqs
 5. Jupyter notebook doc
+- Update prints with logging statements.

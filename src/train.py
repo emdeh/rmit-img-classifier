@@ -154,9 +154,9 @@ if __name__ == "__main__":
             device_type=args.device
         )
     except KeyboardInterrupt:
-        print("\nTraining interrupted by user. Exiting gracefully...")
+        print("\nTraining interrupted by user. Exiting...")
         sys.exit(0)
-        
+
     except Exception as e:
         print(f"An error occurred: {e}")
         sys.exit(1)
