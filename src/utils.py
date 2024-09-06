@@ -19,7 +19,7 @@ import os
 import torch
 from torchvision import datasets, transforms
 
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
 
 
 class DataLoader:
