@@ -84,11 +84,8 @@ def main(**kwargs):
             raise RuntimeError(f"Failed to load category names from file: {e}")
 
     # Process the image
-    try:
-        image_processor = ImageProcessor()
-        image = image_processor.process_image(image_path)
-    except Exception as e:
-        raise RuntimeError(f"Failed to process image: {e}")
+    image_processor = ImageProcessor()
+    image = image_processor.process_image(image_path)
 
     # Predict the top K classes
     try:
