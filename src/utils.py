@@ -46,9 +46,10 @@ class DataLoader:
         """
         self.data_dir = data_dir
 
-        # Check the data dir exists
-        if not os.path.isdir(self.data_dir):
-            raise FileNotFoundError(f"Data directory not found: {data_dir}")
+        ## Check the data dir exists
+        # TODO: Consider if the error handling should move from train to here.
+        #if not os.path.isdir(self.data_dir):
+        #    raise FileNotFoundError(f"Data directory not found: {data_dir}")
 
     def load_data(self):
         """

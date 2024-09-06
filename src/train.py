@@ -141,15 +141,23 @@ if __name__ == "__main__":
 
     # Parse arguments
     args = parser.parse_args()
-
-    # Call main function
-    main(
-        data_dir=args.data_dir,
-        save_dir=args.save_dir,
-        arch=args.arch,
-        learning_rate=args.learning_rate,
-        hidden_units=args.hidden_units,
-        epochs=args.epochs,
-        device_type=args.device
-    )
+    
+    try:
+        # Call main function
+        main(
+            data_dir=args.data_dir,
+            save_dir=args.save_dir,
+            arch=args.arch,
+            learning_rate=args.learning_rate,
+            hidden_units=args.hidden_units,
+            epochs=args.epochs,
+            device_type=args.device
+        )
+    except KeyboardInterrupt:
+        print("\nTraining interrupted by user. Exiting gracefully...")
+        sys.exit(0)
+        
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        sys.exit(1)
 

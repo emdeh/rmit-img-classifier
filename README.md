@@ -90,4 +90,3 @@ Image-Classifier/
 
 4. Jupyter notebook reqs
 5. Jupyter notebook doc
-13. error handling
