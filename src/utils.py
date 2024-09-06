@@ -15,7 +15,7 @@ Dependencies:
     - torchvision: Contains popular datasets and transforms for image data.
     - PIL: Python Imaging Library, used for opening and manipulating image files.
 """
-
+import os
 import torch
 from torchvision import datasets, transforms
 
@@ -46,6 +46,10 @@ class DataLoader:
         """
         self.data_dir = data_dir
 
+        # Check the data dir exists
+        if not os.path.isdir(self.data_dir):
+            raise FileNotFoundError(f"Data directory not found: {self.data_dir}")
+
     def load_data(self):
         """
         Loads the training and validation datasets from the specified directory, applies the 
@@ -60,42 +64,63 @@ class DataLoader:
                 - dataloaders (dict): Dataloaders for the 'train' and 'valid' datasets.
                 - class_to_idx (dict): Mapping of class labels to indices.
         """
-        train_dir = f"{self.data_dir}"
-        valid_dir = f"{self.data_dir}"
+        train_dir = os.path.join(self.data_dir, 'train')
+        valid_dir = os.path.join(self.data_dir, 'valid')
 
-        print(f"Loading training data from {train_dir}/train")
-        print(f"Loading validation data from {valid_dir}/valid")
+        # Check if train and valid directories exist
+        if not os.path.isdir(train_dir):
+            raise FileNotFoundError(f"Training directory not found: {train_dir}")
+        if not os.path.isdir(valid_dir):
+            raise FileNotFoundError(f"Validation directory not found: {valid_dir}")
+
+        print(f"Loading training data from {train_dir}")
+        print(f"Loading validation data from {valid_dir}")
 
         # Define transforms
-        data_transforms = {
-            'train': transforms.Compose([
-                transforms.RandomRotation(30),
-                transforms.RandomResizedCrop(224),
-                transforms.RandomHorizontalFlip(),
-                transforms.ToTensor(),
-                transforms.Normalize(
-                    [0.485, 0.456, 0.406],[0.229, 0.224, 0.225])
-            ]),
-            'valid': transforms.Compose([
-                transforms.Resize(256),
-                transforms.CenterCrop(224),
-                transforms.ToTensor(),
-                transforms.Normalize(
-                    [0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-            ])
-        }
-
-        print("Data trainsformations complete...")
+        try:
+            data_transforms = {
+                'train': transforms.Compose([
+                    transforms.RandomRotation(30),
+                    transforms.RandomResizedCrop(224),
+                    transforms.RandomHorizontalFlip(),
+                    transforms.ToTensor(),
+                    transforms.Normalize(
+                        [0.485, 0.456, 0.406],[0.229, 0.224, 0.225])
+                ]),
+                'valid': transforms.Compose([
+                    transforms.Resize(256),
+                    transforms.CenterCrop(224),
+                    transforms.ToTensor(),
+                    transforms.Normalize(
+                        [0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+                ])
+            }
+            print("Data trainsformations complete...")
+        except Exception as e:
+                raise RuntimeError(f"Error defining data transformations: {e}")
 
         # Load datasets
-        image_datasets = {
-            x: datasets.ImageFolder(f"{self.data_dir}/{x}", transform=data_transforms[x])
-            for x in ['train', 'valid']
-        }
-        dataloaders = {
-            x: torch.utils.data.DataLoader(image_datasets[x], batch_size=64, shuffle=True, num_workers=4, pin_memory=True)
-            for x in ['train', 'valid']
-        }
+        try:
+            image_datasets = {
+                x: datasets.ImageFolder(f"{self.data_dir}/{x}", transform=data_transforms[x])
+                for x in ['train', 'valid']
+            }
+            # Check if they are empty
+            for x in ['train', 'valid']:
+                if len(image_datasets[x]) == 0:
+                    raise ValueError(f"No images found in {x} dataset at {os.path.join(self.data_dir, x)}")
+        except Exception as e:
+            raise RuntimeError(f"Error loading image datasets: {e}")
+        
+        # Create dataloaders
+        try:
+            dataloaders = {
+                x: torch.utils.data.DataLoader(image_datasets[x], batch_size=64, shuffle=True, num_workers=4, pin_memory=True)
+                for x in ['train', 'valid']
+            }
+        except Exception as e:
+            raise RuntimeError(f"Error creating dataloaders: {e}")
+            
         print("Data loaded")
         return dataloaders, image_datasets['train'].class_to_idx
 
@@ -125,15 +150,35 @@ class ImageProcessor:
             torch.Tensor: A tensor representation of the processed image, ready for input 
             to the model.
         """
-        image = Image.open(image_path)
+        # Check if image file exists
+        if not os.path.isfile(image_path):
+            raise FileNotFoundError(f"Image file not found: {image_path}")
+        
+        # Open image
+        try:
+            image = Image.open(image_path)
+        except FileNotFoundError as e:
+            raise FileNotFoundError(f"Image file not found: {e}")
+        except UnidentifiedImageError as e:
+            raise UnidentifiedImageError(f"Cannot identify image file: {e}")
+        except Exception as e:
+            raise RuntimeError(f"Error opening image file: {e}")
+
         print("Image pre-processing starting...")
-        preprocess = transforms.Compose([
-            transforms.Resize(256),
-            transforms.CenterCrop(224),
-            transforms.ToTensor(),
-            transforms.Normalize(
-                [0.485, 0.456, 0.406],
-                [0.229, 0.224, 0.225])
-        ])
-        print("Image preprocessing complete.")
-        return preprocess(image)
+
+        # Apply transformations
+        try:
+            preprocess = transforms.Compose([
+                transforms.Resize(256),
+                transforms.CenterCrop(224),
+                transforms.ToTensor(),
+                transforms.Normalize(
+                    [0.485, 0.456, 0.406],
+                    [0.229, 0.224, 0.225])
+            ])
+            processed_image = preprocess(image)
+            print("Image preprocessing complete.")
+        except Exception as e:
+            raise RuntimeError(f"Error procesing image: {e}")
+        
+        return processed_image
