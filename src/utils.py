@@ -112,7 +112,7 @@ class ImageProcessor:
                                    necessary preprocessing steps to prepare it for input 
                                    into a model.
     """
-    @staticmethod
+
     def process_image(image_path):
         """
         Processes an image for use in the model by applying transformations such as 
