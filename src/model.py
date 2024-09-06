@@ -271,18 +271,18 @@ class ModelManager:
         Returns:
             None
         """
-        # Save the appropriate classifier depending on the architecture
-        # TODO: Is there a better way to handle this?
-        #if self.arch == 'vgg16':
-        #    classifier = self.model.classifier
-        #elif self.arch == 'resnet50':
-        #    classifier = self.model.fc
-        #else:
-        #    raise ValueError(f"Architecture {self.arch} not supported for saving checkpoints.")
-        # TODO: Is the above no longer need?
+
         print(f"Saving checkpoint to: {save_dir}")
         if not os.path.isdir(save_dir):
             raise FileNotFoundError(f"Save directory does not exist: {save_dir}")
+        
+        #Save the appropriate classifier depending on the architecture
+        if self.arch == 'vgg16':
+            classifier = self.model.classifier
+        elif self.arch == 'resnet50':
+            classifier = self.model.fc
+        else:
+            raise ValueError(f"Architecture {self.arch} not supported for saving checkpoints.")
     
         try:
         # Save checkpoint with necessary metadata
@@ -292,9 +292,10 @@ class ModelManager:
                 'architecture': self.arch,  # Save the architecture correctly
                 'hidden_units': self.hidden_units,
                 'learning_rate': self.learning_rate,
-                'classifier': classifier  # Save the correct classifier
+                'classifier': classifier
             }
 
+            # Save checkpoint
             torch.save(checkpoint, f"{save_dir}/checkpoint.pth")
             print("Checkpoint saved!")
 
