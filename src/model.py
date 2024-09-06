@@ -17,7 +17,7 @@ Dependencies:
     - json: For handling JSON files, in this case class-to-category mapping.
     - warnings: For handling warnings during model loading.
 """
-
+import os
 import json
 import warnings
 
@@ -68,6 +68,21 @@ class ModelManager:
         Returns:
             None
         """
+        if arch not in ['vgg16', 'resnet50']:
+            raise ValueError(f"Unsupported architecture: {arch}")
+        
+        if not isinstance(hidden_units, int) or hidden_units <= 0:
+            raise ValueError("Hidden units should be a positive integer.")
+        
+        if not isinstance(learning_rate, float) or learning_rate <= 0:
+            raise ValueError("Learning rate should be a positive float.")
+        
+        if not isinstance(class_to_idx, dict):
+            raise ValueError("class_to_idx should be a dictionary.")
+    
+        if device_type not in ['cpu', 'gpu']:
+            raise ValueError(f"Unsupported device type: {device_type}")
+        
         # Set the device based on device_type (cpu or gpu)
         if device_type == 'gpu':
             if torch.cuda.is_available():
@@ -110,17 +125,23 @@ class ModelManager:
         # Normalise the architecture name to handle variations like 'VGG16'
         # and 'vgg16'.
         # TODO: May be redundant but currently to scared to change anything...
-        arch = arch.lower()
+        #arch = arch.lower()
 
 
-        if hasattr(models, arch):
+        #if hasattr(models, arch):
         # TODO: Potential redundant code that could be refactored.
+        try:
             if arch == 'vgg16':
                 model = models.vgg16(weights=models.VGG16_Weights.DEFAULT)
+            elif arch == 'resnet50':
+                model = models.resnet50(weights=models.ResNet50_Weights.DEFAULT)
 
-                # Freeze parameters to stop backpropagation
-                for param in model.parameters():
-                    param.requires_grad = False
+            # Freeze parameters to stop backpropagation
+            for param in model.parameters():
+                param.requires_grad = False
+
+            # Set up classifier based on architecture
+            if arch == 'vgg16':
 
                 # Create a new classifier for VGG16
                 classifier = nn.Sequential(
@@ -131,15 +152,8 @@ class ModelManager:
                     nn.LogSoftmax(dim=1)
                 )
                 model.classifier = classifier
-
+            
             elif arch == 'resnet50':
-                model = models.resnet50(weights=models.ResNet50_Weights.DEFAULT)
-                
-                # Freeze parameters to stop backpropagation
-                for param in model.parameters():
-                    param.requires_grad = False
-
-                # New classifier for ResNet.
                 # ResNet50 uses `fc` instead of `classifier`
                 model.fc = nn.Sequential(
                     nn.Linear(model.fc.in_features, hidden_units),
@@ -148,18 +162,12 @@ class ModelManager:
                     nn.Linear(hidden_units, len(self.class_to_idx)),
                     nn.LogSoftmax(dim=1)
                 )
-            else:
-                raise ValueError(f"Architecture {arch} not supported or weights not available.")
-        else:
-            # For older versions of torchvision that use 'pretrained=True'
-            # instead of weights
-            # TODO: May be redundant/better way to handle this.
-            model = getattr(models, arch)(pretrained=True)
 
-        print(f"Classifier model loaded with architecture {arch} and hidden units {hidden_units}.")
-
-        return model
-
+            print(f"Classifier model loaded with architecture {arch} and hidden units {hidden_units}.")
+            return model
+            
+        except Exception as e:
+            raise RuntimeError(f"Failed to create model: {e}")
 
     def train(self, dataloaders, epochs, print_every=5):
         """
@@ -175,69 +183,82 @@ class ModelManager:
         Returns:
             None
         """
+        if not isinstance(dataloaders, dict) or 'train' not in dataloaders or 'valid' not in dataloaders:
+            raise ValueError("Dataloaders must be a dictionary containing 'train' and 'valid' keys.")
+        
+        if not isinstance(epochs, int) or epochs <= 0:
+            raise ValueError("Epochs should be a positive integer.")
+    
         print("Training commencing...")
+
         steps = 0
         running_loss = 0
+        try:
+            for epoch in range(epochs):
+                print(f"Commencing epoch: {epoch+1}")
+                for inputs, labels in dataloaders['train']:
+                    steps += 1
 
-        for epoch in range(epochs):
-            print(f"Commencing epoch: {epoch+1}")
-            for inputs, labels in dataloaders['train']:
-                steps += 1
+                    # Move input and label tensors to the appropriate device (GPU/CPU)
+                    inputs, labels = inputs.to(self.device), labels.to(self.device)
+                    # print("Debug: inputs and labels moved to device")
 
-                # Move input and label tensors to the appropriate device (GPU/CPU)
-                inputs, labels = inputs.to(self.device), labels.to(self.device)
-                # print("Debug: inputs and labels moved to device")
+                    # Zero the gradients
+                    self.optimizer.zero_grad()
+                    # print("Debug: gradients zeroed")
 
-                # Zero the gradients
-                self.optimizer.zero_grad()
-                # print("Debug: gradients zeroed")
+                    # Forward pass
+                    outputs = self.model(inputs)
+                    loss = self.criterion(outputs, labels)
+                    # print("Debug: forward pass")
 
-                # Forward pass
-                outputs = self.model(inputs)
-                loss = self.criterion(outputs, labels)
-                # print("Debug: forward pass")
+                    # Backward pass and optimise
+                    loss.backward()
+                    self.optimizer.step()
+                    # print("Debug: backward pass and optimise")
 
-                # Backward pass and optimise
-                loss.backward()
-                self.optimizer.step()
-                # print("Debug: backward pass and optimise")
+                    running_loss += loss.item()
 
-                running_loss += loss.item()
+                    # Perform validation every `print_every` steps
+                    if steps % print_every == 0:
+                        # Set model to evaluation mode
+                        self.model.eval()
+                        validation_loss = 0
+                        accuracy = 0
+                        # print("Debug: in validation if statement...")
 
-                # Perform validation every `print_every` steps
-                if steps % print_every == 0:
-                    # Set model to evaluation mode
-                    self.model.eval()
-                    validation_loss = 0
-                    accuracy = 0
-                    # print("Debug: in validation if statement...")
+                        # Disable gradient calculation for validation
+                        with torch.no_grad():
+                            for inputs, labels in dataloaders['valid']:
+                                inputs, labels = inputs.to(self.device), labels.to(self.device)
+                                outputs = self.model(inputs)
+                                loss = self.criterion(outputs, labels)
+                                validation_loss += loss.item()
 
-                    # Disable gradient calculation for validation
-                    with torch.no_grad():
-                        for inputs, labels in dataloaders['valid']:
-                            inputs, labels = inputs.to(self.device), labels.to(self.device)
-                            outputs = self.model(inputs)
-                            loss = self.criterion(outputs, labels)
-                            validation_loss += loss.item()
+                                # Calculate accuracy
+                                ps = torch.exp(outputs)
+                                top_p, top_class = ps.topk(1, dim=1)
+                                equals = top_class == labels.view(*top_class.shape)
+                                accuracy += torch.mean(equals.type(torch.FloatTensor)).item()
+                                # print("Debug: Calculated accuracy")
 
-                            # Calculate accuracy
-                            ps = torch.exp(outputs)
-                            top_p, top_class = ps.topk(1, dim=1)
-                            equals = top_class == labels.view(*top_class.shape)
-                            accuracy += torch.mean(equals.type(torch.FloatTensor)).item()
-                            # print("Debug: Calculated accuracy")
+                        # Print statistics
+                        print(f'Epoch {epoch+1}/{epochs}.. '
+                            f'Train loss: {running_loss/print_every:.3f}.. '
+                            f'Validation loss: {validation_loss/len(dataloaders["valid"]):.3f}.. '
+                            f'Validation accuracy: {accuracy/len(dataloaders["valid"]):.3f}')
 
-                    # Print statistics
-                    print(f'Epoch {epoch+1}/{epochs}.. '
-                          f'Train loss: {running_loss/print_every:.3f}.. '
-                          f'Validation loss: {validation_loss/len(dataloaders["valid"]):.3f}.. '
-                          f'Validation accuracy: {accuracy/len(dataloaders["valid"]):.3f}')
+                        running_loss = 0
 
-                    running_loss = 0
-
-                    # Set model back to training mode
-                    self.model.train()
-        print("Training complete!")
+                        # Set model back to training mode
+                        self.model.train()
+            print("Training complete!")
+        except RuntimeError as e:
+            if 'CUDA' in str(e):
+                raise RuntimeError("Training failed due to a CUDA-related issue (out of memory, etc.).")
+            raise RuntimeError(f"Training failed: {e}")
+        except Exception as e:
+            raise RuntimeError(f"An unexpected error occurred during training: {e}")
 
     def save_checkpoint(self, save_dir):
         """
@@ -250,36 +271,42 @@ class ModelManager:
         Returns:
             None
         """
-        print(f"Saving checkpoint to: {save_dir}")
-
         # Save the appropriate classifier depending on the architecture
         # TODO: Is there a better way to handle this?
-        if self.arch == 'vgg16':
-            classifier = self.model.classifier
-        elif self.arch == 'resnet50':
-            classifier = self.model.fc
-        else:
-            raise ValueError(f"Architecture {self.arch} not supported for saving checkpoints.")
-
+        #if self.arch == 'vgg16':
+        #    classifier = self.model.classifier
+        #elif self.arch == 'resnet50':
+        #    classifier = self.model.fc
+        #else:
+        #    raise ValueError(f"Architecture {self.arch} not supported for saving checkpoints.")
+        # TODO: Is the above no longer need?
+        print(f"Saving checkpoint to: {save_dir}")
+        if not os.path.isdir(save_dir):
+            raise FileNotFoundError(f"Save directory does not exist: {save_dir}")
+    
+        try:
         # Save checkpoint with necessary metadata
-        checkpoint = {
-            'state_dict': self.model.state_dict(),
-            'class_to_idx': self.class_to_idx,
-            'architecture': self.arch,  # Save the architecture correctly
-            'hidden_units': self.hidden_units,
-            'learning_rate': self.learning_rate,
-            'classifier': classifier  # Save the correct classifier
-        }
+            checkpoint = {
+                'state_dict': self.model.state_dict(),
+                'class_to_idx': self.class_to_idx,
+                'architecture': self.arch,  # Save the architecture correctly
+                'hidden_units': self.hidden_units,
+                'learning_rate': self.learning_rate,
+                'classifier': classifier  # Save the correct classifier
+            }
 
-        torch.save(checkpoint, f"{save_dir}/checkpoint.pth")
-        print("Checkpoint saved!")
+            torch.save(checkpoint, f"{save_dir}/checkpoint.pth")
+            print("Checkpoint saved!")
 
+        except Exception as e:
+            raise RuntimeError(f"Failed to save checkpoint: {e}")
 
     @classmethod 
     # Decorator needed because the method is invoked on the class itself instead
     # of an object of the class. This allows it to return a new instance of the class.
 
     def load_checkpoint(cls, checkpoint_path, device_type):
+        # TODO: This needs work...
         """
         Loads a model checkpoint from the specified path and restores the model's state, 
         architecture, and other parameters. Also loads the class-to-index mapping.
@@ -291,7 +318,9 @@ class ModelManager:
         Returns:
             ModelManager: An instance of the ModelManager with the loaded model.
         """
-
+        if not os.path.isfile(checkpoint_path):
+            raise FileNotFoundError(f"Checkpoint file not found: {checkpoint_path}")
+        
         # Determine map_location based on device_type
         if device_type == 'gpu' and torch.cuda.is_available():
             map_location = 'cuda'
@@ -304,9 +333,12 @@ class ModelManager:
         # TODO: Implement logging
 
         # Load the checkpoint from file
-        checkpoint = torch.load(checkpoint_path, map_location=map_location)
+        try:
+            checkpoint = torch.load(checkpoint_path, map_location=map_location)
+            print("\nCheckpoint loaded.")
 
-        print("\nCheckpoint loaded.")
+        except Exception as e:
+            raise RuntimeError(f"Failed to load checkpoint: {e}")
 
         # Extract necessary information
         class_to_idx = checkpoint['class_to_idx']
@@ -344,15 +376,22 @@ class ModelManager:
                 - probs (numpy.ndarray): Probabilities of the top K predicted classes.
                 - classes (numpy.ndarray): Indices of the top K predicted classes.
         """
+        if not isinstance(top_k, int) or top_k <= 0:
+            raise ValueError("top_k must be a positive integer.") 
+        
         # Set model to evaluation mode.
-        self.model.eval()
+        try:
+            self.model.eval()
 
-        # Move image to device
-        image = image.to(self.device)
-        with torch.no_grad():
-            output = self.model(image.unsqueeze(0))
-            probs, classes = output.topk(top_k, dim=1)
-            return probs.exp().cpu().numpy()[0], classes.cpu().numpy()[0]
+            # Move image to device
+            image = image.to(self.device)
+            with torch.no_grad():
+                output = self.model(image.unsqueeze(0))
+                probs, classes = output.topk(top_k, dim=1)
+        except Exception as e:
+            raise RuntimeError(f"Prediction failed: {e}")
+        
+        return probs.exp().cpu().numpy()[0], classes.cpu().numpy()[0]
 
     def load_category_names(self, json_file):
         """
@@ -364,11 +403,20 @@ class ModelManager:
         Returns:
             dict: A dictionary mapping class indices to category names.
         """
+        if not os.path.isfile(json_file):
+            raise FileNotFoundError(f"JSON file not found: {json_file}")
+    
         # Load mapping from class index to category names
-        with open(json_file, 'r', encoding='utf-8') as f:
-            return json.load(f)
+        try:
+            with open(json_file, 'r', encoding='utf-8') as f:
+                category_names = json.load(f)
+        except json.JSONDecodeError as e:
+            raise RuntimeError(f"Error reading JSON file: {e}")
+    
+        return category_names
 
     def map_class_to_name(self, class_indices, category_names):
+        # TODO : Error handling.
         """
         Maps the predicted class indices to their corresponding category names using 
         the provided category names dictionary.
@@ -380,10 +428,13 @@ class ModelManager:
         Returns:
             list: A list of category names corresponding to the predicted class indices.
         """
+        
         # Invert class_to_idx to get idx_to_class mapping
         idx_to_class = {v: k for k, v in self.class_to_idx.items()}
+        print(type(idx_to_class))
 
         # Map the predicted class indices to the actual category names
         class_names = [category_names[idx_to_class[i]] for i in class_indices]
+        print(type(class_names))
 
         return class_names
