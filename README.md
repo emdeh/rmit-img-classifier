@@ -88,3 +88,22 @@ Image-Classifier/
 
 # TO-DO LIST
 - Update prints with logging statements.
+- Update to distribute workload across multiple remote GPUs
+- Review TODOs
+- see baseline approach/cheatsheet including links to case studies for next CNN model (https://cs231n.github.io/convolutional-networks/)
+- See [pytorch computer vision tutorial](https://pytorch.org/tutorials/beginner/transfer_learning_tutorial.html)(opens in a new tab) for additional insights, and optional features like [learning rate scheduler](https://pytorch.org/docs/stable/generated/torch.optim.lr_scheduler.ReduceLROnPlateau.html#torch.optim.lr_scheduler.ReduceLROnPlateau)(opens in a new tab) 💡
+
+## Other notes
+-  Finding the correct hyperparameters can be a time-consuming undertaking, there are several general approaches towards trying to have an optimised approach, see this [blogpost](https://blog.floydhub.com/guide-to-hyperparameters-search-for-deep-learning-models/)(opens in a new tab) that gives an overview of such.
+
+## Note on augmentations (See TODO in utils.py ~line 84)
+See https://github.com/aleju/imgaug for what is possible in regard to augmentations and see https://pytorch.org/vision/stable/transforms.html?highlight=augmentations which can be freely chosen from
+
+1. Increased Data Diversity: Augmentations help create a more diverse and representative dataset. By applying various transformations to the original data, such as adding noise, changing word order, or replacing words with synonyms, we can generate new examples that capture different variation
+
+3. Regularization: Augmentations act as a form of regularization by introducing noise or perturbations to the training data. This helps prevent overfitting, where the model becomes too specialized to the training data and performs poorly on unseen examples. By exposing the model to different variations of the data, augmentations encourage it to learn more robust and generalisable representations
+
+3. Data Scarcity: In some cases, obtaining a large labeled dataset can be challenging or expensive. Augmentations can help alleviate the problem of data scarcity by generating additional training examples from the limited available data. This allows the model to learn from a larger and more diverse set of examples, leading to improved performance.
+
+4. Addressing Biases: Augmentations can also be used to address biases present in the training data. By applying transformations that modify sensitive attributes or introduce variations in the data, we can reduce the impact of biases and ensure fairer and more unbiased predictions.
+

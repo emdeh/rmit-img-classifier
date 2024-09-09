@@ -410,7 +410,7 @@ class ModelManager:
         # Load mapping from class index to category names
         try:
             with open(json_file, 'r', encoding='utf-8') as f:
-                category_names = json.load(f)
+                category_names = json.load(f) # TODO: To avoid an error at some workspaces and library versions, strict=False can be added.: json.load(f, strict=False)
         except json.JSONDecodeError as e:
             raise RuntimeError(f"Error reading JSON file: {e}")
 

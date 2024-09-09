@@ -93,7 +93,7 @@ if __name__ == "__main__":
     )
     # Arguments with short flags
     parser.add_argument(
-        '-dir', '--data_dir', 
+        '-dir', '--data_dir', ##TODO: Not an optional arg but a positional arguementin this project. See https://docs.python.org/3/howto/argparse.html
         required=True,
         help='Directory of training data. Example: -dir /path/to/data'
     )
