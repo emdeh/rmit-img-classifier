@@ -88,6 +88,8 @@ Image-Classifier/
 
 # TO-DO LIST
 - Update prints with logging statements.
+    - predict.py done.
+    
 - Update to distribute workload across multiple remote GPUs
 - Review TODOs
 - see baseline approach/cheatsheet including links to case studies for next CNN model (https://cs231n.github.io/convolutional-networks/)
