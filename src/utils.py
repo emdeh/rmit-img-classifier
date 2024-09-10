@@ -1,21 +1,26 @@
 """
-This module provides utility classes for handling data loading and image processing
-tasks.
+This module provides utility classes for handling data loading, image processing
+tasks, and other system-wide utilities such as logging.
 
 The `DataLoader` class is responsible for loading and transforming training and
-validation datasets, while the `ImageProcessor` class provides methods for processing
-images to prepare them for input into deep learning models.
+validation datasets, while the `ImageProcessor` class provides methods for 
+processing images to prepare them for input into deep learning models. The 
+`Logger` class is used to configure and return logger instances for use in the 
+application.
 
 Classes:
     DataLoader: Handles loading and transforming datasets for training and validation.
     ImageProcessor: Provides image preprocessing functionality for input into models.
+    Logger: Configures and returns logger instances for use in the application.
 
 Dependencies:
+    - logging: Provides logging functionality for the application.
     - torch: Provides deep learning framework functionality.
     - torchvision: Contains popular datasets and transforms for image data.
     - PIL: Python Imaging Library, used for opening and manipulating image files.
 """
 import os
+import logging
 import torch
 from torchvision import datasets, transforms
 
@@ -78,6 +83,7 @@ class DataLoader:
         print(f"Loading validation data from {valid_dir}")
 
         # Define transforms
+        # TODO: See note in readme.md for more info on potential augmentations on the training set to enlarge the data
         try:
             data_transforms = {
                 'train': transforms.Compose([
@@ -98,7 +104,7 @@ class DataLoader:
             }
             print("Data trainsformations complete...")
         except Exception as e:
-                raise RuntimeError(f"Error defining data transformations: {e}")
+            raise RuntimeError(f"Error defining data transformations: {e}")
 
         # Load datasets
         try:
@@ -183,3 +189,42 @@ class ImageProcessor:
             raise RuntimeError(f"Error procesing image: {e}")
         
         return processed_image
+
+class Logger:
+    """
+    A class for creating and configuring loggers for use in the application.
+    """
+    @staticmethod
+    def get_logger(name, level=logging.DEBUG, log_to_file=False, log_file='app.log'):
+        """
+        Returns a logger instance for the specified name.
+        
+        :param name: Name for the logger (typically the class name)
+        :param level: Logging level (default: DEBUG)
+        :param log_to_file: If True, log messages will also be saved to a file (default: False)
+        :param log_file: File to log messages if log_to_file is True (default: 'app.log')
+        :return: Configured logger
+        """
+        logger = logging.getLogger(name)
+        logger.setLevel(level)
+
+        # Create console handler
+        ch = logging.StreamHandler()
+        ch.setLevel(level)
+
+        # Create a formatter with time, name, level, and message
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        ch.setFormatter(formatter)
+
+        # Add the console handler if it's not already added
+        if not logger.hasHandlers():
+            logger.addHandler(ch)
+        
+        # Optional: log to file if log_to_file is True
+        if log_to_file:
+            fh = logging.FileHandler(log_file)
+            fh.setLevel(level)
+            fh.setFormatter(formatter)
+            logger.addHandler(fh)
+        
+        return logger
