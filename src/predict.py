@@ -31,9 +31,15 @@ Dependencies:
 import os
 import sys
 import argparse
+import logging
+import traceback
 
 from model import ModelManager
 from utils import ImageProcessor
+
+# Set up logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 def main(**kwargs):
     """
@@ -60,50 +66,60 @@ def main(**kwargs):
 
     # Check if image file exists
     if not os.path.isfile(image_path):
+        logger.error("Image file not found: %s", image_path)
         raise FileNotFoundError(f"Image file not found: {image_path}")
 
     # Check if checkpoint file exists
     if not os.path.isfile(checkpoint_path):
+        logger.error("Checkpoint file not found: %s", checkpoint_path)
         raise FileNotFoundError(f"Checkpoint file not found: {checkpoint_path}")
 
     # Load a model from checkpoint
     try:
+        logger.info("Loading model checkpoint from: %s", checkpoint_path)
         model_manager = ModelManager.load_checkpoint(checkpoint_path, device_type)
-    except Exception as e:
-        raise RuntimeError(f"Failed to load model checkpoint: {e}")
+    except Exception as load_error:
+        logger.error("Failed to load model checkpoint: %s", load_error)
+        raise RuntimeError(f"Failed to load model checkpoint: {load_error}") from load_error
 
     # Load category names
     category_names = None
     if category_names_path:
         if not os.path.isfile(category_names_path):
-            raise FileNotFoundError(f"Category names file not found: {category_names_path}")
+            logger.error("Category names file not found: %s", category_names_path)
+            raise FileNotFoundError(f"Category names file not found: {category_names_path}") from category_names_path
         
         try:
+            logger.info("Loading category names from: %s", category_names_path)
             category_names = model_manager.load_category_names(category_names_path)
-        except Exception as e:
-            raise RuntimeError(f"Failed to load category names from file: {e}")
+        except Exception as category_error:
+            logger.error("Failed to load category names from file: %s", category_error)
+            raise RuntimeError(f"Failed to load category names from file: {category_error}") from category_error
 
     # Process the image
     image_processor = ImageProcessor()
+    logger.info("Processing image: %s", image_path)
     image = image_processor.process_image(image_path)
 
     # Predict the top K classes
     try:
         probs, class_indices = model_manager.predict(image, top_k)
-    except Exception as e:
-        raise RuntimeError(f"Failed to make prediction: {e}")
+    except Exception as prediction_error:
+        logger.error("Failed to make prediction: %s", prediction_error)
+        raise RuntimeError(f"Failed to make prediction: {prediction_error}") from prediction_error
 
     # Map class indices to flower names
     if category_names:
         try:
             class_names = model_manager.map_class_to_name(class_indices, category_names)
-            print(f"Predicted Classes: {class_names}")
-        except Exception as e:
-            raise RuntimeError(f"Failed to map class indices to category names: {e}")
+            logger.info("Predicted Classes: %s", class_names)
+        except Exception as map_error:
+            logger.error("Failed to map class indices to category names: %s", map_error)
+            raise RuntimeError(f"Failed to map class indices to category names: {map_error}") from map_error
     else:
-        print(f"Predicted Classes: {class_indices}")
+        logger.info("Predicted Class Indices: %s", class_indices)
 
-    print(f"Probabilities: {probs}")
+    logger.info("Predicted Probabilities: %s", probs)
 
 
 if __name__ == "__main__":
@@ -163,10 +179,21 @@ if __name__ == "__main__":
             category_names_path=args.category_names,
             device=args.device
         )
+
+    except FileNotFoundError as file_error:
+        logger.error("File not found: %s", file_error)
+        sys.exit(1)
+
+    except ValueError as value_error:
+        logger.error("Invalid value encountered: %s", value_error)
+        sys.exit(1)
+
     except KeyboardInterrupt:
-        print("\nTraining interrupted by user. Exiting...")
+        logger.warning("Process interrupted by user. Exiting gracefully...")
         sys.exit(0)
-              
-    except Exception as e:
-        print(f"An error occurred: {e}")
+
+    except Exception as e: # pylint: disable=W0718
+        logger.error("An unexpected error occurred: %s", e)
+        # Log the full traceback to get more details about the error
+        logger.debug(traceback.format_exc())
         sys.exit(1)

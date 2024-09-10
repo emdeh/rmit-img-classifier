@@ -219,12 +219,12 @@ class Logger:
         # Add the console handler if it's not already added
         if not logger.hasHandlers():
             logger.addHandler(ch)
-        
+
         # Optional: log to file if log_to_file is True
         if log_to_file:
             fh = logging.FileHandler(log_file)
             fh.setLevel(level)
             fh.setFormatter(formatter)
             logger.addHandler(fh)
-        
+
         return logger
