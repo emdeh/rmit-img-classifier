@@ -19,7 +19,7 @@ Command-line arguments:
     - --device / -d: Device to use for inference, either "cpu" or "gpu" (default is "gpu").
 
 Usage example:
-    python predict.py --image_path /path/to/image.jpg --checkpoint /path/to/checkpoint.pth \
+    python predict.py --image_path /path/to/image.jpg --checkpoint /path/to/checkpoint.pth
     --top_k 5 --category_names /path/to/cat_to_name.json --device gpu
 
 Dependencies:
@@ -38,7 +38,7 @@ from model import ModelManager
 from utils import ImageProcessor
 
 # Set up logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO,format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 def main(**kwargs):
@@ -51,7 +51,8 @@ def main(**kwargs):
             - image_path (str): Path to the image file.
             - checkpoint_path (str): Path to the model checkpoint file.
             - top_k (int): Number of top K classes to return.
-            - category_names_path (str): Path to a JSON file mapping class indices to category names.
+            - category_names_path (str): Path to a JSON file mapping class 
+              indices to category names.
             - device (str): Device type to use for inference ('cpu' or 'gpu').
 
     Returns:
@@ -87,14 +88,18 @@ def main(**kwargs):
     if category_names_path:
         if not os.path.isfile(category_names_path):
             logger.error("Category names file not found: %s", category_names_path)
-            raise FileNotFoundError(f"Category names file not found: {category_names_path}") from category_names_path
-        
+            raise FileNotFoundError(
+                f"Category names file not found: {category_names_path}"
+                ) from category_names_path
+
         try:
             logger.info("Loading category names from: %s", category_names_path)
             category_names = model_manager.load_category_names(category_names_path)
         except Exception as category_error:
             logger.error("Failed to load category names from file: %s", category_error)
-            raise RuntimeError(f"Failed to load category names from file: {category_error}") from category_error
+            raise RuntimeError(
+                f"Failed to load category names from file: {category_error}"
+                ) from category_error
 
     # Process the image
     image_processor = ImageProcessor()
@@ -115,7 +120,9 @@ def main(**kwargs):
             logger.info("Predicted Classes: %s", class_names)
         except Exception as map_error:
             logger.error("Failed to map class indices to category names: %s", map_error)
-            raise RuntimeError(f"Failed to map class indices to category names: {map_error}") from map_error
+            raise RuntimeError(
+                f"Failed to map class indices to category names: {map_error}"
+                ) from map_error
     else:
         logger.info("Predicted Class Indices: %s", class_indices)
 
@@ -152,7 +159,7 @@ if __name__ == "__main__":
         '-n', '--category_names', 
         required=True,
         type=str,
-        help='Path to a JSON file mapping categories to flower names. Example: -n /path/to/cat_to_name.json'
+        help='Path to a JSON file mapping categories to flower names. Example: -n /path/to/cat_to_name.json' #pylint: disable=C0301
     )
     parser.add_argument(
         '-d', '--device',
