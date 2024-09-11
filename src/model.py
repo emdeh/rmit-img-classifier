@@ -140,13 +140,10 @@ class ModelManager:
         Returns:
             torch.nn.Module: The model with the updated classifier.
         """
-        # Normalise the architecture name to handle variations like 'VGG16'
-        # and 'vgg16'.
-        # TODO: May be redundant but currently to scared to change anything...
-        #arch = arch.lower()
+        # Log start time
+        start_time = time.time()
+        self.logger.info("Loading model...")
 
-
-        #if hasattr(models, arch):
         # TODO: Potential redundant code that could be refactored.
         try:
             if arch == 'vgg16':
@@ -307,8 +304,9 @@ class ModelManager:
             None
         """
 
-        print(f"Saving checkpoint to: {save_dir}")
+        self.logger.info("Saving checkpoint to: %s", save_dir)
         if not os.path.isdir(save_dir):
+            self.logger.error("Save directory does not exist: %s", save_dir)
             raise FileNotFoundError(f"Save directory does not exist: {save_dir}")
 
         #Save the appropriate classifier depending on the architecture
@@ -317,6 +315,7 @@ class ModelManager:
         elif self.arch == 'resnet50':
             classifier = self.model.fc
         else:
+            self.logger.error("Architecture %s not supported for saving checkpoints.", self.arch)
             raise ValueError(f"Architecture {self.arch} not supported for saving checkpoints.")
 
         try:
@@ -332,10 +331,13 @@ class ModelManager:
 
             # Save checkpoint
             torch.save(checkpoint, f"{save_dir}/checkpoint.pth")
-            print("Checkpoint saved!")
+            self.logger.info("Checkpoint saved!")
 
-        except Exception as e:
-            raise RuntimeError(f"Failed to save checkpoint: {e}")
+        except Exception as save_error:
+            self.logger.error("Failed to save checkpoint: %s", save_error)
+            raise RuntimeError(
+                f"Failed to save checkpoint: {save_error}"
+                ) from save_error
 
     @classmethod
     # Decorator needed because the method is invoked on the class itself instead
@@ -354,7 +356,12 @@ class ModelManager:
         Returns:
             ModelManager: An instance of the ModelManager with the loaded model.
         """
+
+                # Get logger for this method
+        logger = logging.getLogger(__name__)
+
         if not os.path.isfile(checkpoint_path):
+            logger.error("Checkpoint file not found: %s", checkpoint_path)
             raise FileNotFoundError(f"Checkpoint file not found: {checkpoint_path}")
 
         # Determine map_location based on device_type
@@ -363,7 +370,7 @@ class ModelManager:
         else:
             map_location = 'cpu'
 
-        print(f"Loading checkpoint from: {checkpoint_path}")
+        logger.info("Loading checkpoint from: %s", checkpoint_path)
 
         warnings.simplefilter("ignore")
         # TODO: Implement logging
@@ -373,14 +380,16 @@ class ModelManager:
             checkpoint = torch.load(checkpoint_path, map_location=map_location)
             print("\nCheckpoint loaded.")
 
-        except Exception as e:
-            raise RuntimeError(f"Failed to load checkpoint: {e}")
+        except Exception as checkpoint_error:
+            logger.error("Failed to load checkpoint: %s", checkpoint_path)
+            raise RuntimeError(f"Failed to load checkpoint: {checkpoint_error}"
+            ) from checkpoint_error
 
         # Extract necessary information
         class_to_idx = checkpoint['class_to_idx']
         arch = checkpoint.get('architecture', 'vgg16')  # Default to vgg16 if not found
 
-        print(f"Loaded architecture from checkpoint: {arch}")
+        logger.info("Loaded architecture from checkpoint: %s", arch)
 
         # Normalise the architecture name
         # TODO: May not be required after all.
@@ -413,6 +422,7 @@ class ModelManager:
                 - classes (numpy.ndarray): Indices of the top K predicted classes.
         """
         if not isinstance(top_k, int) or top_k <= 0:
+            self.logger.error("top_k must be a positive integer.")
             raise ValueError("top_k must be a positive integer.")
 
         # Set model to evaluation mode.
@@ -424,8 +434,10 @@ class ModelManager:
             with torch.no_grad():
                 output = self.model(image.unsqueeze(0))
                 probs, classes = output.topk(top_k, dim=1)
-        except Exception as e:
-            raise RuntimeError(f"Prediction failed: {e}")
+        except Exception as predict_error:
+            self.logger.error("Prediction failed: %s", predict_error)
+            raise RuntimeError(f"Prediction failed: {predict_error}"
+            ) from predict_error
 
         return probs.exp().cpu().numpy()[0], classes.cpu().numpy()[0]
 
@@ -440,14 +452,17 @@ class ModelManager:
             dict: A dictionary mapping class indices to category names.
         """
         if not os.path.isfile(json_file):
+            self.logger.error("JSON file not found: %s", json_file)
             raise FileNotFoundError(f"JSON file not found: {json_file}")
 
         # Load mapping from class index to category names
         try:
             with open(json_file, 'r', encoding='utf-8') as f:
-                category_names = json.load(f) # TODO: To avoid an error at some workspaces and library versions, strict=False can be added.: json.load(f, strict=False)
-        except json.JSONDecodeError as e:
-            raise RuntimeError(f"Error reading JSON file: {e}")
+                category_names = json.load(f, strict=False)
+        except json.JSONDecodeError as json_load_error:
+            self.logger.error("Error reading JSON file: %s", json_load_error)
+            raise RuntimeError(f"Error reading JSON file: {json_load_error}"
+            ) from json_load_error
 
         return category_names
 
