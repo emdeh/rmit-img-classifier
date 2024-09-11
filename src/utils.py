@@ -252,7 +252,7 @@ class ImageProcessor:
         end_time = time.time()
         total_runtime = end_time - start_time
         logger.info(
-            "Image processing complete. Total image process time: %.2f seconds", 
+            "Total image process time: %.4f seconds", 
             round(total_runtime, 2)
             )
 
