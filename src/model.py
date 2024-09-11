@@ -219,7 +219,7 @@ class ModelManager:
         # Start time
         start_time = time.time()
 
-        if not isinstance(dataloaders, dict) or 'train' not in dataloaders or 'valid' not in dataloaders:
+        if not isinstance(dataloaders, dict) or 'train' not in dataloaders or 'valid' not in dataloaders: # pylint: disable=C0301
             self.logger.error(
                 "Dataloaders must be a dictionary containing 'train' and 'valid' keys.")
             raise ValueError(
@@ -272,7 +272,7 @@ class ModelManager:
 
                                 # Calculate accuracy
                                 ps = torch.exp(outputs)
-                                top_p, top_class = ps.topk(1, dim=1)
+                                top_p, top_class = ps.topk(1, dim=1) # pylint: disable=W0612
                                 equals = top_class == labels.view(*top_class.shape)
                                 accuracy += torch.mean(equals.type(torch.FloatTensor)).item()
                                 # print("Debug: Calculated accuracy")
@@ -283,7 +283,7 @@ class ModelManager:
                             "Train loss: %.3f.. "
                             "Validation loss: %.3f.. "
                             "Validation accuracy: %.3f"
-                            , epoch+1, epochs, running_loss/print_every, validation_loss/len(dataloaders['valid']), accuracy/len(dataloaders['valid']))
+                            , epoch+1, epochs, running_loss/print_every, validation_loss/len(dataloaders['valid']), accuracy/len(dataloaders['valid'])) # pylint: disable=C0301
 
                         running_loss = 0
 
@@ -541,5 +541,5 @@ class ModelManager:
         end_time = time.time()
         total_runtime = end_time - start_time
         self.logger.info("Class indices mapped to names in %.4f seconds.", total_runtime)
-        
+
         return class_names
