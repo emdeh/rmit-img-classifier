@@ -20,6 +20,8 @@ Dependencies:
 import os
 import json
 import warnings
+import logging
+import time
 
 import torch
 from torch import nn, optim
@@ -42,15 +44,23 @@ class ModelManager:
         learning_rate (float): Learning rate for the optimiser.
         class_to_idx (dict): Mapping of class labels to indices.
         device_type (str): Device to use for training ('cpu' or 'gpu').
+        logger (logging.Logger): Logger instance for logging messages.
 
     Methods:
-        _create_model(arch, hidden_units): Builds the model with the specified architecture and hidden units.
-        train(dataloaders, epochs, print_every): Trains the model and prints training/validation statistics.
-        save_checkpoint(save_dir): Saves the model checkpoint.
-        load_checkpoint(checkpoint_path, device_type): Loads a model checkpoint from the specified path.
-        predict(image, top_k): Predicts the top K classes for a given image.
-        load_category_names(json_file): Loads a JSON file that maps class indices to category names.
-        map_class_to_name(class_indices, category_names): Maps predicted class indices to category names.
+        _create_model(arch, hidden_units): 
+            Builds the model with the specified architecture and hidden units.
+        train(dataloaders, epochs, print_every):
+            Trains the model and prints training/validation statistics.
+        save_checkpoint(save_dir): S
+            aves the model checkpoint.
+        load_checkpoint(checkpoint_path, device_type): 
+            Loads a model checkpoint from the specified path.
+        predict(image, top_k):
+            Predicts the top K classes for a given image.
+        load_category_names(json_file):
+            Loads a JSON file that maps class indices to category names.
+        map_class_to_name(class_indices, category_names):
+            Maps predicted class indices to category names.
     """
     def __init__(self, arch, hidden_units, learning_rate, class_to_idx, device_type):
         """
@@ -68,35 +78,46 @@ class ModelManager:
         Returns:
             None
         """
+        # Start time
+        start_time = time.time()
+
+        # Assign logger to class attribute
+        self.logger = logging.getLogger(__name__)
+
         if arch not in ['vgg16', 'resnet50']:
+            self.logger.error("Unsupported architecture: %s", arch)
             raise ValueError(f"Unsupported architecture: {arch}")
 
         if not isinstance(hidden_units, int) or hidden_units <= 0:
+            self.logger.error("Hidden units should be a positive integer.")
             raise ValueError("Hidden units should be a positive integer.")
 
         if not isinstance(learning_rate, float) or learning_rate <= 0:
+            self.logger.error("Learning rate should be a positive float.")
             raise ValueError("Learning rate should be a positive float.")
 
         if not isinstance(class_to_idx, dict):
+            self.logger.error("class_to_idx should be a dictionary.")
             raise ValueError("class_to_idx should be a dictionary.")
 
         if device_type not in ['cpu', 'gpu']:
+            self.logger.error("Unsupported device type: %s", device_type)
             raise ValueError(f"Unsupported device type: {device_type}")
 
         # Set the device based on device_type (cpu or gpu)
         if device_type == 'gpu':
             if torch.cuda.is_available():
                 self.device = torch.device("cuda")
-                print("GPU selected and available. Running on GPU.")
+                self.logger.info("GPU selected and available. Running on GPU.")
             else:
                 self.device = torch.device("cpu")
-                print("GPU selected but not available. Falling back to CPU.")
+                self.logger.warning("GPU selected but not available. Falling back to CPU.")
         else:
             self.device = torch.device("cpu")
-            print("CPU explicitly selected. Running on CPU.")
+            self.logger.info("CPU explicitly selected. Running on CPU")
 
         # Model setup
-        self.class_to_idx = class_to_idx 
+        self.class_to_idx = class_to_idx
         self.arch = arch
         self.hidden_units = hidden_units
         self.learning_rate = learning_rate
@@ -110,6 +131,11 @@ class ModelManager:
             self.optimizer = optim.Adam(self.model.fc.parameters(), lr=learning_rate)
         self.model.to(self.device)
 
+        # Log end time
+        end_time = time.time()
+        total_runtime = end_time - start_time
+        self.logger.info("ModelManager initialised in %.4f seconds.", total_runtime)
+
     def _create_model(self, arch, hidden_units):
         """
         Creates and returns a deep learning model based on the specified architecture 
@@ -122,13 +148,10 @@ class ModelManager:
         Returns:
             torch.nn.Module: The model with the updated classifier.
         """
-        # Normalise the architecture name to handle variations like 'VGG16'
-        # and 'vgg16'.
-        # TODO: May be redundant but currently to scared to change anything...
-        #arch = arch.lower()
+        # Log start time
+        start_time = time.time()
+        self.logger.info("Loading model...")
 
-
-        #if hasattr(models, arch):
         # TODO: Potential redundant code that could be refactored.
         try:
             if arch == 'vgg16':
@@ -163,11 +186,21 @@ class ModelManager:
                     nn.LogSoftmax(dim=1)
                 )
 
-            print(f"Classifier model loaded with architecture {arch} and hidden units {hidden_units}.")
+            self.logger.info(
+                "Classifier model loaded with architecture %s and hidden units %d."
+                , arch, hidden_units)
+
+            # Log end time
+            end_time = time.time()
+            total_runtime = end_time - start_time
+            self.logger.info("Model loaded in %.4f seconds.", total_runtime)
             return model
 
-        except Exception as e:
-            raise RuntimeError(f"Failed to create model: {e}")
+        except Exception as model_error:
+            self.logger.error("Failed to create model: %s", model_error)
+            raise RuntimeError(
+                f"Failed to create model: {model_error}"
+                ) from model_error
 
     def train(self, dataloaders, epochs, print_every=5):
         """
@@ -183,39 +216,42 @@ class ModelManager:
         Returns:
             None
         """
-        if not isinstance(dataloaders, dict) or 'train' not in dataloaders or 'valid' not in dataloaders:
-            raise ValueError("Dataloaders must be a dictionary containing 'train' and 'valid' keys.")
+        # Start time
+        start_time = time.time()
+
+        if not isinstance(dataloaders, dict) or 'train' not in dataloaders or 'valid' not in dataloaders: # pylint: disable=C0301
+            self.logger.error(
+                "Dataloaders must be a dictionary containing 'train' and 'valid' keys.")
+            raise ValueError(
+                "Dataloaders must be a dictionary containing 'train' and 'valid' keys.")
 
         if not isinstance(epochs, int) or epochs <= 0:
+            self.logger.error("Epochs should be a positive integer.")
             raise ValueError("Epochs should be a positive integer.")
 
-        print("Training commencing...")
+        self.logger.info("Training commencing...")
 
         steps = 0
         running_loss = 0
         try:
             for epoch in range(epochs):
-                print(f"Commencing epoch: {epoch+1}")
+                self.logger.info("Commencing epoch: %d", epoch+1)
                 for inputs, labels in dataloaders['train']:
                     steps += 1
 
                     # Move input and label tensors to the appropriate device (GPU/CPU)
                     inputs, labels = inputs.to(self.device), labels.to(self.device)
-                    # print("Debug: inputs and labels moved to device")
 
                     # Zero the gradients
                     self.optimizer.zero_grad()
-                    # print("Debug: gradients zeroed")
 
                     # Forward pass
                     outputs = self.model(inputs)
                     loss = self.criterion(outputs, labels)
-                    # print("Debug: forward pass")
 
                     # Backward pass and optimise
                     loss.backward()
                     self.optimizer.step()
-                    # print("Debug: backward pass and optimise")
 
                     running_loss += loss.item()
 
@@ -225,7 +261,6 @@ class ModelManager:
                         self.model.eval()
                         validation_loss = 0
                         accuracy = 0
-                        # print("Debug: in validation if statement...")
 
                         # Disable gradient calculation for validation
                         with torch.no_grad():
@@ -237,28 +272,44 @@ class ModelManager:
 
                                 # Calculate accuracy
                                 ps = torch.exp(outputs)
-                                top_p, top_class = ps.topk(1, dim=1)
+                                top_p, top_class = ps.topk(1, dim=1) # pylint: disable=W0612
                                 equals = top_class == labels.view(*top_class.shape)
                                 accuracy += torch.mean(equals.type(torch.FloatTensor)).item()
                                 # print("Debug: Calculated accuracy")
 
                         # Print statistics
-                        print(f'Epoch {epoch+1}/{epochs}.. '
-                            f'Train loss: {running_loss/print_every:.3f}.. '
-                            f'Validation loss: {validation_loss/len(dataloaders["valid"]):.3f}.. '
-                            f'Validation accuracy: {accuracy/len(dataloaders["valid"]):.3f}')
+                        self.logger.info(
+                            "Epoch %d/%d.. "
+                            "Train loss: %.3f.. "
+                            "Validation loss: %.3f.. "
+                            "Validation accuracy: %.3f"
+                            , epoch+1, epochs, running_loss/print_every, validation_loss/len(dataloaders['valid']), accuracy/len(dataloaders['valid'])) # pylint: disable=C0301
 
                         running_loss = 0
 
                         # Set model back to training mode
                         self.model.train()
-            print("Training complete!")
-        except RuntimeError as e:
-            if 'CUDA' in str(e):
-                raise RuntimeError("Training failed due to a CUDA-related issue (out of memory, etc.).")
-            raise RuntimeError(f"Training failed: {e}")
-        except Exception as e:
-            raise RuntimeError(f"An unexpected error occurred during training: {e}")
+            # Log end time
+            end_time = time.time()
+            total_runtime = end_time - start_time
+            self.logger.info("Training complete!")
+            self.logger.info("Complete in %.4f seconds.", total_runtime)
+
+        except RuntimeError as cuda_error:
+            if 'CUDA' in str(cuda_error):
+                self.logger.error(
+                    "Training failed due to a CUDA-related issue (out of memory, etc.).")
+                raise RuntimeError(
+                    "Training failed due to a CUDA-related issue (out of memory, etc.)."
+                    ) from cuda_error
+
+            self.logger.error("Training failed: %s", cuda_error)
+            raise RuntimeError(f"Training failed: {cuda_error}") from cuda_error
+
+        except Exception as general_error:
+            self.logger.error("An unexpected error occurred during training: %s", general_error)
+            raise RuntimeError(f"An unexpected error occurred during training: {general_error}"
+            ) from general_error
 
     def save_checkpoint(self, save_dir):
         """
@@ -271,9 +322,12 @@ class ModelManager:
         Returns:
             None
         """
+        # Start time
+        start_time = time.time()
 
-        print(f"Saving checkpoint to: {save_dir}")
+        self.logger.info("Saving checkpoint to: %s", save_dir)
         if not os.path.isdir(save_dir):
+            self.logger.error("Save directory does not exist: %s", save_dir)
             raise FileNotFoundError(f"Save directory does not exist: {save_dir}")
 
         #Save the appropriate classifier depending on the architecture
@@ -282,6 +336,7 @@ class ModelManager:
         elif self.arch == 'resnet50':
             classifier = self.model.fc
         else:
+            self.logger.error("Architecture %s not supported for saving checkpoints.", self.arch)
             raise ValueError(f"Architecture {self.arch} not supported for saving checkpoints.")
 
         try:
@@ -295,12 +350,20 @@ class ModelManager:
                 'classifier': classifier
             }
 
+            # Log end time
+            end_time = time.time()
+            total_runtime = end_time - start_time
+
             # Save checkpoint
             torch.save(checkpoint, f"{save_dir}/checkpoint.pth")
-            print("Checkpoint saved!")
+            self.logger.info("Checkpoint saved!")
+            self.logger.info("Saved in %.4f seconds.", total_runtime)
 
-        except Exception as e:
-            raise RuntimeError(f"Failed to save checkpoint: {e}")
+        except Exception as save_error:
+            self.logger.error("Failed to save checkpoint: %s", save_error)
+            raise RuntimeError(
+                f"Failed to save checkpoint: {save_error}"
+                ) from save_error
 
     @classmethod
     # Decorator needed because the method is invoked on the class itself instead
@@ -319,7 +382,15 @@ class ModelManager:
         Returns:
             ModelManager: An instance of the ModelManager with the loaded model.
         """
+
+        # Get logger for this method
+        logger = logging.getLogger(__name__)
+
+        # Start time
+        start_time = time.time()
+
         if not os.path.isfile(checkpoint_path):
+            logger.error("Checkpoint file not found: %s", checkpoint_path)
             raise FileNotFoundError(f"Checkpoint file not found: {checkpoint_path}")
 
         # Determine map_location based on device_type
@@ -328,7 +399,7 @@ class ModelManager:
         else:
             map_location = 'cpu'
 
-        print(f"Loading checkpoint from: {checkpoint_path}")
+        logger.info("Loading checkpoint from: %s", checkpoint_path)
 
         warnings.simplefilter("ignore")
         # TODO: Implement logging
@@ -338,14 +409,14 @@ class ModelManager:
             checkpoint = torch.load(checkpoint_path, map_location=map_location)
             print("\nCheckpoint loaded.")
 
-        except Exception as e:
-            raise RuntimeError(f"Failed to load checkpoint: {e}")
+        except Exception as checkpoint_error:
+            logger.error("Failed to load checkpoint: %s", checkpoint_path)
+            raise RuntimeError(f"Failed to load checkpoint: {checkpoint_error}"
+            ) from checkpoint_error
 
         # Extract necessary information
         class_to_idx = checkpoint['class_to_idx']
         arch = checkpoint.get('architecture', 'vgg16')  # Default to vgg16 if not found
-
-        print(f"Loaded architecture from checkpoint: {arch}")
 
         # Normalise the architecture name
         # TODO: May not be required after all.
@@ -360,6 +431,12 @@ class ModelManager:
 
         # Load the state_dict from the checkpoint
         model_manager.model.load_state_dict(checkpoint['state_dict'])
+
+        # End time
+        end_time = time.time()
+        total_runtime = end_time - start_time
+        logger.info("Loaded architecture from checkpoint: %s", arch)
+        logger.info("Checkpoint loaded in %.4f seconds.", total_runtime)
 
         return model_manager
 
@@ -377,7 +454,11 @@ class ModelManager:
                 - probs (numpy.ndarray): Probabilities of the top K predicted classes.
                 - classes (numpy.ndarray): Indices of the top K predicted classes.
         """
+        # Start time
+        start_time = time.time()
+
         if not isinstance(top_k, int) or top_k <= 0:
+            self.logger.error("top_k must be a positive integer.")
             raise ValueError("top_k must be a positive integer.")
 
         # Set model to evaluation mode.
@@ -389,9 +470,15 @@ class ModelManager:
             with torch.no_grad():
                 output = self.model(image.unsqueeze(0))
                 probs, classes = output.topk(top_k, dim=1)
-        except Exception as e:
-            raise RuntimeError(f"Prediction failed: {e}")
+        except Exception as predict_error:
+            self.logger.error("Prediction failed: %s", predict_error)
+            raise RuntimeError(f"Prediction failed: {predict_error}"
+            ) from predict_error
 
+        # Log end time
+        end_time = time.time()
+        total_runtime = end_time - start_time
+        self.logger.info("Prediction completed in %.4f seconds.", total_runtime)
         return probs.exp().cpu().numpy()[0], classes.cpu().numpy()[0]
 
     def load_category_names(self, json_file):
@@ -404,15 +491,26 @@ class ModelManager:
         Returns:
             dict: A dictionary mapping class indices to category names.
         """
+        # Start time
+        start_time = time.time()
+
         if not os.path.isfile(json_file):
+            self.logger.error("JSON file not found: %s", json_file)
             raise FileNotFoundError(f"JSON file not found: {json_file}")
 
         # Load mapping from class index to category names
         try:
             with open(json_file, 'r', encoding='utf-8') as f:
-                category_names = json.load(f) # TODO: To avoid an error at some workspaces and library versions, strict=False can be added.: json.load(f, strict=False)
-        except json.JSONDecodeError as e:
-            raise RuntimeError(f"Error reading JSON file: {e}")
+                category_names = json.load(f, strict=False)
+        except json.JSONDecodeError as json_load_error:
+            self.logger.error("Error reading JSON file: %s", json_load_error)
+            raise RuntimeError(f"Error reading JSON file: {json_load_error}"
+            ) from json_load_error
+
+        # Log end time
+        end_time = time.time()
+        total_runtime = end_time - start_time
+        self.logger.info("Category names loaded in %.4f seconds.", total_runtime)
 
         return category_names
 
@@ -429,6 +527,8 @@ class ModelManager:
         Returns:
             list: A list of category names corresponding to the predicted class indices.
         """
+        # Start time
+        start_time = time.time()
 
         # Invert class_to_idx to get idx_to_class mapping
         idx_to_class = {v: k for k, v in self.class_to_idx.items()}
@@ -436,5 +536,10 @@ class ModelManager:
 
         # Map the predicted class indices to the actual category names
         class_names = [category_names[idx_to_class[i]] for i in class_indices]
+
+        # Log end time
+        end_time = time.time()
+        total_runtime = end_time - start_time
+        self.logger.info("Class indices mapped to names in %.4f seconds.", total_runtime)
 
         return class_names

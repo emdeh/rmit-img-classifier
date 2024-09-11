@@ -103,7 +103,6 @@ def main(**kwargs):
 
     # Process the image
     image_processor = ImageProcessor()
-    logger.info("Processing image: %s", image_path)
     image = image_processor.process_image(image_path)
 
     # Predict the top K classes

@@ -21,6 +21,7 @@ Dependencies:
 """
 import os
 import logging
+import time
 import torch
 from torchvision import datasets, transforms
 
@@ -33,6 +34,7 @@ class DataLoader:
 
     Attributes:
         data_dir (str): The directory where the dataset is stored.
+        logger (logging.Logger): Logger instance for the DataLoader class.
 
     Methods:
         load_data(): Loads the training and validation datasets, applies transformations,
@@ -44,17 +46,14 @@ class DataLoader:
         for loading the training and validation datasets.
 
         Args:
-            data_dir (str): Directory containing the dataset (with 'train' and 'valid' subdirectories).
+            data_dir (str): 
+            Directory containing the dataset (with 'train' and 'valid' subdirectories).
 
         Returns:
             None
         """
         self.data_dir = data_dir
-
-        ## Check the data dir exists
-        # TODO: Consider if the error handling should move from train to here.
-        #if not os.path.isdir(self.data_dir):
-        #    raise FileNotFoundError(f"Data directory not found: {data_dir}")
+        self.logger = logging.getLogger(__name__) # Initialise logger for this class
 
     def load_data(self):
         """
@@ -70,20 +69,27 @@ class DataLoader:
                 - dataloaders (dict): Dataloaders for the 'train' and 'valid' datasets.
                 - class_to_idx (dict): Mapping of class labels to indices.
         """
+        # Log start time
+        start_time = time.time()
+        self.logger.info("Loading data...")
+
         train_dir = os.path.join(self.data_dir, 'train')
         valid_dir = os.path.join(self.data_dir, 'valid')
 
         # Check if train and valid directories exist
         if not os.path.isdir(train_dir):
+            self.logger.error("Training directory not found: %s", train_dir)
             raise FileNotFoundError(f"Training directory not found: {train_dir}")
         if not os.path.isdir(valid_dir):
+            self.logger.error("Validation directory not found: %s", valid_dir)
             raise FileNotFoundError(f"Validation directory not found: {valid_dir}")
 
-        print(f"Loading training data from {train_dir}")
-        print(f"Loading validation data from {valid_dir}")
+        self.logger.info("Loading training data from %s", train_dir)
+        self.logger.info("Loading validation data from %s", valid_dir)
 
         # Define transforms
-        # TODO: See note in readme.md for more info on potential augmentations on the training set to enlarge the data
+        # TODO: See note in readme.md for more info on potential augmentations
+        # on the training set to enlarge the data
         try:
             data_transforms = {
                 'train': transforms.Compose([
@@ -102,9 +108,12 @@ class DataLoader:
                         [0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
                 ])
             }
-            print("Data trainsformations complete...")
-        except Exception as e:
-            raise RuntimeError(f"Error defining data transformations: {e}")
+            self.logger.info("Data transformations complete...")
+        except Exception as transform_error:
+            self.logger.error("Error defining data transformations: %s", transform_error)
+            raise RuntimeError(
+                f"Error defining data transformations: {transform_error}"
+                ) from transform_error
 
         # Load datasets
         try:
@@ -115,20 +124,42 @@ class DataLoader:
             # Check if they are empty
             for x in ['train', 'valid']:
                 if len(image_datasets[x]) == 0:
-                    raise ValueError(f"No images found in {x} dataset at {os.path.join(self.data_dir, x)}")
-        except Exception as e:
-            raise RuntimeError(f"Error loading image datasets: {e}")
-        
+                    self.logger.error(
+                        "No images found in %s dataset at %s", x, os.path.join(self.data_dir, x)
+                        )
+
+                    raise ValueError(
+                        f"No images found in {x} dataset at {os.path.join(self.data_dir, x)}"
+                        )
+
+        except Exception as dataset_error:
+            raise RuntimeError(
+                f"Error loading image datasets: {dataset_error}"
+                ) from dataset_error
+
         # Create dataloaders
         try:
             dataloaders = {
-                x: torch.utils.data.DataLoader(image_datasets[x], batch_size=64, shuffle=True, num_workers=4, pin_memory=True)
+                x: torch.utils.data.DataLoader(
+                    image_datasets[x],
+                    batch_size=64,
+                    shuffle=True,
+                    num_workers=4,
+                    pin_memory=True
+                    )
                 for x in ['train', 'valid']
             }
-        except Exception as e:
-            raise RuntimeError(f"Error creating dataloaders: {e}")
-            
-        print("Data loaded")
+            self.logger.info("Data loaders created successfully...")
+        except Exception as dataloader_error:
+            raise RuntimeError(
+                f"Error creating dataloaders: {dataloader_error}"
+                ) from dataloader_error
+
+        # Log end time
+        end_time = time.time()
+        total_runtime = end_time - start_time
+        self.logger.info("Data loaded")
+        self.logger.info("Total load time: %.2f seconds", total_runtime)
         return dataloaders, image_datasets['train'].class_to_idx
 
 class ImageProcessor:
@@ -157,21 +188,41 @@ class ImageProcessor:
             torch.Tensor: A tensor representation of the processed image, ready for input 
             to the model.
         """
+        # Get logger for this method
+        logger = logging.getLogger(__name__)
+
+        # Log start time
+        start_time = time.time()
+        logger.info("Processing image: %s", image_path)
+
         # Check if image file exists
         if not os.path.isfile(image_path):
+            logger.error("Image not found: %s", image_path)
             raise FileNotFoundError(f"Image file not found: {image_path}")
-        
+
         # Open image
         try:
             image = Image.open(image_path)
-        except FileNotFoundError as e:
-            raise FileNotFoundError(f"Image file not found: {e}")
-        except UnidentifiedImageError as e:
-            raise UnidentifiedImageError(f"Cannot identify image file: {e}")
-        except Exception as e:
-            raise RuntimeError(f"Error opening image file: {e}")
 
-        print("Image pre-processing starting...")
+        except FileNotFoundError as img_error:
+            logger.error("Image file not found: %s", img_error)
+            raise FileNotFoundError(
+                f"Image file not found: {img_error}"
+                ) from img_error
+
+        except UnidentifiedImageError as img_frmt_error:
+            logger.error("Cannot identify image file: %s", img_frmt_error)
+            raise UnidentifiedImageError(
+                f"Cannot identify image file: {img_frmt_error}"
+                ) from img_frmt_error
+
+        except Exception as run_error:
+            logger.error("Error opening image file: %s", run_error)
+            raise RuntimeError(
+                f"Error opening image file: {run_error}"
+                ) from run_error
+
+        logger.info("Image pre-processing starting...")
 
         # Apply transformations
         try:
@@ -184,10 +235,22 @@ class ImageProcessor:
                     [0.229, 0.224, 0.225])
             ])
             processed_image = preprocess(image)
-            print("Image preprocessing complete.")
-        except Exception as e:
-            raise RuntimeError(f"Error procesing image: {e}")
-        
+
+            logger.info("Image pre-processing complete.")
+
+        except Exception as img_process_error:
+            raise RuntimeError(
+                f"Error procesing image: {img_process_error}"
+                ) from img_process_error
+
+        # Log end time
+        end_time = time.time()
+        total_runtime = end_time - start_time
+        logger.info(
+            "Total image process time: %.4f seconds", 
+            round(total_runtime)
+            )
+
         return processed_image
 
 class Logger:
