@@ -34,9 +34,16 @@ Dependencies:
 import sys
 import os
 import argparse
+import logging
+import time
+import traceback
 
 from model import ModelManager
 from utils import DataLoader
+
+# Set up logging
+logging.basicConfig(level=logging.INFO,format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 def main(data_dir, save_dir, arch, learning_rate, hidden_units, epochs, device_type):
     """
@@ -55,20 +62,29 @@ def main(data_dir, save_dir, arch, learning_rate, hidden_units, epochs, device_t
     Returns:
         None
     """
+    # Log the start time
+    start_time = time.time()
+    logger.info("Training process started...")
+
     #Check the data directory exists
     if not os.path.exists(data_dir):
-        raise FileNotFoundError(f"The specified data directory does not exist: {data_dir}")
-    
+        logger.error("The specified data directory does not exist: %s", data_dir)
+        raise FileNotFoundError(
+            f"The specified data directory does not exist: {data_dir}"
+            )
+
     # Check/create the save directory
     if not os.path.exists(save_dir):
         try:
-            print(f"The checkpoint directory passed {save_dir} does not exist")
-            print(f"Attempting to create it...\n")
+            logger.info("The checkpoint directory passed %s does not exist", save_dir)
+            logger.info("Attemptinmg to create the directory...")
             os.makedirs(save_dir)
-            print(f"Created checkpoint directory: {save_dir}\n")
-        except Exception as e:
-            raise OSError(f"Could not create save directory: {save_dir}. Error: {e}")
-    
+            logger.info("Created checkpoint directory: %s", save_dir)
+        except Exception as dir_error:
+            raise OSError(
+                f"Could not create save directory: {save_dir}. Error: {dir_error}"
+                ) from dir_error
+
     # Initialise DataLoader class
     data_loader = DataLoader(data_dir)
     dataloaders, class_to_idx = data_loader.load_data()
@@ -82,6 +98,11 @@ def main(data_dir, save_dir, arch, learning_rate, hidden_units, epochs, device_t
     # Save checkpoint
     model_manager.save_checkpoint(save_dir)
 
+    # Log the end time and calculate total runtime
+    end_time = time.time()
+    total_runtime = end_time - start_time
+    logger.info("Script execution finished. Total runtime: %.2f seconds", round(total_runtime, 2))
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -93,7 +114,7 @@ if __name__ == "__main__":
     )
     # Arguments with short flags
     parser.add_argument(
-        '-dir', '--data_dir', ##TODO: Not an optional arg but a positional arguementin this project. See https://docs.python.org/3/howto/argparse.html
+        '-dir', '--data_dir', ##TODO: Not an optional arg but a positional arguementin this project. See https://docs.python.org/3/howto/argparse.html # pylint: disable=C0301
         required=True,
         help='Directory of training data. Example: -dir /path/to/data'
     )
@@ -141,7 +162,7 @@ if __name__ == "__main__":
 
     # Parse arguments
     args = parser.parse_args()
-    
+
     try:
         # Call main function
         main(
@@ -153,11 +174,17 @@ if __name__ == "__main__":
             epochs=args.epochs,
             device_type=args.device
         )
-    except KeyboardInterrupt:
-        print("\nTraining interrupted by user. Exiting...")
-        sys.exit(0)
-
-    except Exception as e:
-        print(f"An error occurred: {e}")
+    except FileNotFoundError as file_error:
+        logger.error("File not found: %s", file_error)
         sys.exit(1)
-
+    except ValueError as value_error:
+        logger.error("Invalid value encountered: %s", value_error)
+        sys.exit(1)
+    except KeyboardInterrupt:
+        logger.warning("Process interrupted by user. Exiting gracefully...")
+        sys.exit(0)
+    except Exception as e: # pylint: disable=W0718
+        logger.error("An unexpected error occurred: %s", e)
+        # Log the full traceback to get more details about the error
+        logger.debug(traceback.format_exc())
+        sys.exit(1)
