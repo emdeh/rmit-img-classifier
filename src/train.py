@@ -101,7 +101,7 @@ def main(data_dir, save_dir, arch, learning_rate, hidden_units, epochs, device_t
     # Log the end time and calculate total runtime
     end_time = time.time()
     total_runtime = end_time - start_time
-    logger.info("Script execution finished. Total runtime: %.2f seconds", round(total_runtime, 2))
+    logger.info("Script execution finished. Total runtime: %.2f seconds", total_runtime)
 
 
 if __name__ == "__main__":

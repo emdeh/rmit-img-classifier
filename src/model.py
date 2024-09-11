@@ -181,7 +181,13 @@ class ModelManager:
             self.logger.info(
                 "Classifier model loaded with architecture %s and hidden units %d."
                 , arch, hidden_units)
+
             return model
+            
+            # Log end time
+            end_time = time.time()
+            total_runtime = end_time - start_time
+            self.logger.info("Model loaded in %.4f seconds.", total_runtime)
 
         except Exception as model_error:
             self.logger.error("Failed to create model: %s", model_error)
