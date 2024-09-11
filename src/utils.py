@@ -158,8 +158,8 @@ class DataLoader:
         # Log end time
         end_time = time.time()
         total_runtime = end_time - start_time
-        self.logger.info("Data loaded. Total load time: %.2f seconds", total_runtime)
         self.logger.info("Data loaded")
+        self.logger.info("Total load time: %.2f seconds", total_runtime)
         return dataloaders, image_datasets['train'].class_to_idx
 
 class ImageProcessor:
