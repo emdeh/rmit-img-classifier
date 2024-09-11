@@ -20,6 +20,8 @@ Dependencies:
 import os
 import json
 import warnings
+import logging
+import time
 
 import torch
 from torch import nn, optim
@@ -42,15 +44,23 @@ class ModelManager:
         learning_rate (float): Learning rate for the optimiser.
         class_to_idx (dict): Mapping of class labels to indices.
         device_type (str): Device to use for training ('cpu' or 'gpu').
+        logger (logging.Logger): Logger instance for logging messages.
 
     Methods:
-        _create_model(arch, hidden_units): Builds the model with the specified architecture and hidden units.
-        train(dataloaders, epochs, print_every): Trains the model and prints training/validation statistics.
-        save_checkpoint(save_dir): Saves the model checkpoint.
-        load_checkpoint(checkpoint_path, device_type): Loads a model checkpoint from the specified path.
-        predict(image, top_k): Predicts the top K classes for a given image.
-        load_category_names(json_file): Loads a JSON file that maps class indices to category names.
-        map_class_to_name(class_indices, category_names): Maps predicted class indices to category names.
+        _create_model(arch, hidden_units): 
+            Builds the model with the specified architecture and hidden units.
+        train(dataloaders, epochs, print_every):
+            Trains the model and prints training/validation statistics.
+        save_checkpoint(save_dir): S
+            aves the model checkpoint.
+        load_checkpoint(checkpoint_path, device_type): 
+            Loads a model checkpoint from the specified path.
+        predict(image, top_k):
+            Predicts the top K classes for a given image.
+        load_category_names(json_file):
+            Loads a JSON file that maps class indices to category names.
+        map_class_to_name(class_indices, category_names):
+            Maps predicted class indices to category names.
     """
     def __init__(self, arch, hidden_units, learning_rate, class_to_idx, device_type):
         """
@@ -68,35 +78,43 @@ class ModelManager:
         Returns:
             None
         """
+        # Assign logger to class attribute
+        self.logger = logging.getLogger(__name__)
+
         if arch not in ['vgg16', 'resnet50']:
+            self.logger.error("Unsupported architecture: %s", arch)
             raise ValueError(f"Unsupported architecture: {arch}")
 
         if not isinstance(hidden_units, int) or hidden_units <= 0:
+            self.logger.error("Hidden units should be a positive integer.")
             raise ValueError("Hidden units should be a positive integer.")
 
         if not isinstance(learning_rate, float) or learning_rate <= 0:
+            self.logger.error("Learning rate should be a positive float.")
             raise ValueError("Learning rate should be a positive float.")
 
         if not isinstance(class_to_idx, dict):
+            self.logger.error("class_to_idx should be a dictionary.")
             raise ValueError("class_to_idx should be a dictionary.")
 
         if device_type not in ['cpu', 'gpu']:
+            self.logger.error("Unsupported device type: %s", device_type)
             raise ValueError(f"Unsupported device type: {device_type}")
 
         # Set the device based on device_type (cpu or gpu)
         if device_type == 'gpu':
             if torch.cuda.is_available():
                 self.device = torch.device("cuda")
-                print("GPU selected and available. Running on GPU.")
+                self.logger.info("GPU selected and available. Running on GPU.")
             else:
                 self.device = torch.device("cpu")
-                print("GPU selected but not available. Falling back to CPU.")
+                self.logger.warning("GPU selected but not available. Falling back to CPU.")
         else:
             self.device = torch.device("cpu")
-            print("CPU explicitly selected. Running on CPU.")
+            self.logger.info("CPU explicitly selected. Running on CPU")
 
         # Model setup
-        self.class_to_idx = class_to_idx 
+        self.class_to_idx = class_to_idx
         self.arch = arch
         self.hidden_units = hidden_units
         self.learning_rate = learning_rate
@@ -163,11 +181,16 @@ class ModelManager:
                     nn.LogSoftmax(dim=1)
                 )
 
-            print(f"Classifier model loaded with architecture {arch} and hidden units {hidden_units}.")
+            self.logger.info(
+                "Classifier model loaded with architecture %s and hidden units %d."
+                , arch, hidden_units)
             return model
 
-        except Exception as e:
-            raise RuntimeError(f"Failed to create model: {e}")
+        except Exception as model_error:
+            self.logger.error("Failed to create model: %s", model_error)
+            raise RuntimeError(
+                f"Failed to create model: {model_error}"
+                ) from model_error
 
     def train(self, dataloaders, epochs, print_every=5):
         """
@@ -184,38 +207,38 @@ class ModelManager:
             None
         """
         if not isinstance(dataloaders, dict) or 'train' not in dataloaders or 'valid' not in dataloaders:
-            raise ValueError("Dataloaders must be a dictionary containing 'train' and 'valid' keys.")
+            self.logger.error(
+                "Dataloaders must be a dictionary containing 'train' and 'valid' keys.")
+            raise ValueError(
+                "Dataloaders must be a dictionary containing 'train' and 'valid' keys.")
 
         if not isinstance(epochs, int) or epochs <= 0:
+            self.logger.error("Epochs should be a positive integer.")
             raise ValueError("Epochs should be a positive integer.")
 
-        print("Training commencing...")
+        self.logger.info("Training commencing...")
 
         steps = 0
         running_loss = 0
         try:
             for epoch in range(epochs):
-                print(f"Commencing epoch: {epoch+1}")
+                self.logger.info("Commencing epoch: %d", epoch+1)
                 for inputs, labels in dataloaders['train']:
                     steps += 1
 
                     # Move input and label tensors to the appropriate device (GPU/CPU)
                     inputs, labels = inputs.to(self.device), labels.to(self.device)
-                    # print("Debug: inputs and labels moved to device")
 
                     # Zero the gradients
                     self.optimizer.zero_grad()
-                    # print("Debug: gradients zeroed")
 
                     # Forward pass
                     outputs = self.model(inputs)
                     loss = self.criterion(outputs, labels)
-                    # print("Debug: forward pass")
 
                     # Backward pass and optimise
                     loss.backward()
                     self.optimizer.step()
-                    # print("Debug: backward pass and optimise")
 
                     running_loss += loss.item()
 
@@ -225,7 +248,6 @@ class ModelManager:
                         self.model.eval()
                         validation_loss = 0
                         accuracy = 0
-                        # print("Debug: in validation if statement...")
 
                         # Disable gradient calculation for validation
                         with torch.no_grad():
@@ -243,22 +265,35 @@ class ModelManager:
                                 # print("Debug: Calculated accuracy")
 
                         # Print statistics
-                        print(f'Epoch {epoch+1}/{epochs}.. '
-                            f'Train loss: {running_loss/print_every:.3f}.. '
-                            f'Validation loss: {validation_loss/len(dataloaders["valid"]):.3f}.. '
-                            f'Validation accuracy: {accuracy/len(dataloaders["valid"]):.3f}')
+                        self.logger.info(
+                            "Epoch %d/%d.. "
+                            "Train loss: %.3f.. "
+                            "Validation loss: %.3f.. "
+                            "Validation accuracy: %.3f"
+                            , epoch+1, epochs, running_loss/print_every, validation_loss/len(dataloaders['valid']), accuracy/len(dataloaders['valid']))
 
                         running_loss = 0
 
                         # Set model back to training mode
                         self.model.train()
-            print("Training complete!")
-        except RuntimeError as e:
-            if 'CUDA' in str(e):
-                raise RuntimeError("Training failed due to a CUDA-related issue (out of memory, etc.).")
-            raise RuntimeError(f"Training failed: {e}")
-        except Exception as e:
-            raise RuntimeError(f"An unexpected error occurred during training: {e}")
+            self.logger.info("Training complete!")
+
+        except RuntimeError as cuda_error:
+            if 'CUDA' in str(cuda_error):
+                self.logger.error(
+                    "Training failed due to a CUDA-related issue (out of memory, etc.).")
+                raise RuntimeError(
+                    "Training failed due to a CUDA-related issue (out of memory, etc.)."
+                    ) from cuda_error
+
+            self.logger.error("Training failed: %s", cuda_error)
+            raise RuntimeError(f"Training failed: {cuda_error}") from cuda_error
+
+        except Exception as general_error:
+            self.logger.error("An unexpected error occurred during training: %s", general_error)
+            raise RuntimeError(f"An unexpected error occurred during training: {general_error}"
+            ) from general_error
+
 
     def save_checkpoint(self, save_dir):
         """
