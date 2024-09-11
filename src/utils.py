@@ -34,6 +34,7 @@ class DataLoader:
 
     Attributes:
         data_dir (str): The directory where the dataset is stored.
+        logger (logging.Logger): Logger instance for the DataLoader class.
 
     Methods:
         load_data(): Loads the training and validation datasets, applies transformations,
@@ -88,7 +89,7 @@ class DataLoader:
         self.logger.info("Loading validation data from %s", valid_dir)
 
         # Define transforms
-        # TODO: See note in readme.md for more info on potential augmentations 
+        # TODO: See note in readme.md for more info on potential augmentations
         # on the training set to enlarge the data
         try:
             data_transforms = {
@@ -124,8 +125,14 @@ class DataLoader:
             # Check if they are empty
             for x in ['train', 'valid']:
                 if len(image_datasets[x]) == 0:
-                    self.logger.error("No images found in %s dataset at %s", x, os.path.join(self.data_dir, x))
-                    raise ValueError(f"No images found in {x} dataset at {os.path.join(self.data_dir, x)}")
+                    self.logger.error(
+                        "No images found in %s dataset at %s", x, os.path.join(self.data_dir, x)
+                        )
+
+                    raise ValueError(
+                        f"No images found in {x} dataset at {os.path.join(self.data_dir, x)}"
+                        )
+
         except Exception as dataset_error:
             raise RuntimeError(
                 f"Error loading image datasets: {dataset_error}"
@@ -134,7 +141,13 @@ class DataLoader:
         # Create dataloaders
         try:
             dataloaders = {
-                x: torch.utils.data.DataLoader(image_datasets[x], batch_size=64, shuffle=True, num_workers=4, pin_memory=True)
+                x: torch.utils.data.DataLoader(
+                    image_datasets[x],
+                    batch_size=64,
+                    shuffle=True,
+                    num_workers=4,
+                    pin_memory=True
+                    )
                 for x in ['train', 'valid']
             }
             self.logger.info("Data loaders created successfully...")
@@ -172,21 +185,37 @@ class ImageProcessor:
             torch.Tensor: A tensor representation of the processed image, ready for input 
             to the model.
         """
+        # Get logger for this method
+        logger = logging.getLogger(__name__)
+
         # Check if image file exists
         if not os.path.isfile(image_path):
+            logger.error("Image not found: %s", image_path)
             raise FileNotFoundError(f"Image file not found: {image_path}")
-        
+
         # Open image
         try:
             image = Image.open(image_path)
-        except FileNotFoundError as e:
-            raise FileNotFoundError(f"Image file not found: {e}")
-        except UnidentifiedImageError as e:
-            raise UnidentifiedImageError(f"Cannot identify image file: {e}")
-        except Exception as e:
-            raise RuntimeError(f"Error opening image file: {e}")
 
-        print("Image pre-processing starting...")
+        except FileNotFoundError as img_error:
+            logger.error("Image file not found: %s", img_error)
+            raise FileNotFoundError(
+                f"Image file not found: {img_error}"
+                ) from img_error
+
+        except UnidentifiedImageError as img_frmt_error:
+            logger.error("Cannot identify image file: %s", img_frmt_error)
+            raise UnidentifiedImageError(
+                f"Cannot identify image file: {img_frmt_error}"
+                ) from img_frmt_error
+
+        except Exception as run_error:
+            logger.error("Error opening image file: %s", run_error)
+            raise RuntimeError(
+                f"Error opening image file: {run_error}"
+                ) from run_error
+
+        logger.info("Image pre-processing starting...")
 
         # Apply transformations
         try:
@@ -199,10 +228,14 @@ class ImageProcessor:
                     [0.229, 0.224, 0.225])
             ])
             processed_image = preprocess(image)
-            print("Image preprocessing complete.")
-        except Exception as e:
-            raise RuntimeError(f"Error procesing image: {e}")
-        
+
+            logger.info("Image pre-processing complete.")
+
+        except Exception as img_process_error:
+            raise RuntimeError(
+                f"Error procesing image: {img_process_error}"
+                ) from img_process_error
+
         return processed_image
 
 class Logger:
