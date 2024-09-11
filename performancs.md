@@ -1,0 +1,1 @@
+11/9 - train.py takes 774.06 on cpu

@@ -21,6 +21,7 @@ Dependencies:
 """
 import os
 import logging
+import time
 import torch
 from torchvision import datasets, transforms
 
@@ -44,12 +45,14 @@ class DataLoader:
         for loading the training and validation datasets.
 
         Args:
-            data_dir (str): Directory containing the dataset (with 'train' and 'valid' subdirectories).
+            data_dir (str): 
+            Directory containing the dataset (with 'train' and 'valid' subdirectories).
 
         Returns:
             None
         """
         self.data_dir = data_dir
+        self.logger = logging.getLogger(__name__) # Initialise logger for this class
 
         ## Check the data dir exists
         # TODO: Consider if the error handling should move from train to here.
@@ -75,15 +78,18 @@ class DataLoader:
 
         # Check if train and valid directories exist
         if not os.path.isdir(train_dir):
+            self.logger.error("Training directory not found: %s", train_dir)
             raise FileNotFoundError(f"Training directory not found: {train_dir}")
         if not os.path.isdir(valid_dir):
+            self.logger.error("Validation directory not found: %s", valid_dir)
             raise FileNotFoundError(f"Validation directory not found: {valid_dir}")
 
-        print(f"Loading training data from {train_dir}")
-        print(f"Loading validation data from {valid_dir}")
+        self.logger.info("Loading training data from %s", train_dir)
+        self.logger.info("Loading validation data from %s", valid_dir)
 
         # Define transforms
-        # TODO: See note in readme.md for more info on potential augmentations on the training set to enlarge the data
+        # TODO: See note in readme.md for more info on potential augmentations 
+        # on the training set to enlarge the data
         try:
             data_transforms = {
                 'train': transforms.Compose([
@@ -102,9 +108,12 @@ class DataLoader:
                         [0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
                 ])
             }
-            print("Data transformations complete...")
-        except Exception as e:
-            raise RuntimeError(f"Error defining data transformations: {e}")
+            self.logger.info("Data transformations complete...")
+        except Exception as transform_error:
+            self.logger.error("Error defining data transformations: %s", transform_error)
+            raise RuntimeError(
+                f"Error defining data transformations: {transform_error}"
+                ) from transform_error
 
         # Load datasets
         try:
@@ -115,20 +124,26 @@ class DataLoader:
             # Check if they are empty
             for x in ['train', 'valid']:
                 if len(image_datasets[x]) == 0:
+                    self.logger.error("No images found in %s dataset at %s", x, os.path.join(self.data_dir, x))
                     raise ValueError(f"No images found in {x} dataset at {os.path.join(self.data_dir, x)}")
-        except Exception as e:
-            raise RuntimeError(f"Error loading image datasets: {e}")
-        
+        except Exception as dataset_error:
+            raise RuntimeError(
+                f"Error loading image datasets: {dataset_error}"
+                ) from dataset_error
+
         # Create dataloaders
         try:
             dataloaders = {
                 x: torch.utils.data.DataLoader(image_datasets[x], batch_size=64, shuffle=True, num_workers=4, pin_memory=True)
                 for x in ['train', 'valid']
             }
-        except Exception as e:
-            raise RuntimeError(f"Error creating dataloaders: {e}")
-            
-        print("Data loaded")
+            self.logger.info("Data loaders created successfully...")
+        except Exception as dataloader_error:
+            raise RuntimeError(
+                f"Error creating dataloaders: {dataloader_error}"
+                ) from dataloader_error
+
+        self.logger.info("Data loaded")
         return dataloaders, image_datasets['train'].class_to_idx
 
 class ImageProcessor:
