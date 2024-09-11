@@ -78,6 +78,9 @@ class ModelManager:
         Returns:
             None
         """
+        # Start time
+        start_time = time.time()
+
         # Assign logger to class attribute
         self.logger = logging.getLogger(__name__)
 
@@ -127,6 +130,11 @@ class ModelManager:
         elif arch == 'resnet50':
             self.optimizer = optim.Adam(self.model.fc.parameters(), lr=learning_rate)
         self.model.to(self.device)
+
+        # Log end time
+        end_time = time.time()
+        total_runtime = end_time - start_time
+        self.logger.info("ModelManager initialised in %.4f seconds.", total_runtime)
 
     def _create_model(self, arch, hidden_units):
         """
@@ -182,12 +190,11 @@ class ModelManager:
                 "Classifier model loaded with architecture %s and hidden units %d."
                 , arch, hidden_units)
 
-            return model
-            
             # Log end time
             end_time = time.time()
             total_runtime = end_time - start_time
             self.logger.info("Model loaded in %.4f seconds.", total_runtime)
+            return model
 
         except Exception as model_error:
             self.logger.error("Failed to create model: %s", model_error)
@@ -209,6 +216,9 @@ class ModelManager:
         Returns:
             None
         """
+        # Start time
+        start_time = time.time()
+
         if not isinstance(dataloaders, dict) or 'train' not in dataloaders or 'valid' not in dataloaders:
             self.logger.error(
                 "Dataloaders must be a dictionary containing 'train' and 'valid' keys.")
@@ -279,7 +289,11 @@ class ModelManager:
 
                         # Set model back to training mode
                         self.model.train()
+            # Log end time
+            end_time = time.time()
+            total_runtime = end_time - start_time
             self.logger.info("Training complete!")
+            self.logger.info("Complete in %.4f seconds.", total_runtime)
 
         except RuntimeError as cuda_error:
             if 'CUDA' in str(cuda_error):
@@ -297,7 +311,6 @@ class ModelManager:
             raise RuntimeError(f"An unexpected error occurred during training: {general_error}"
             ) from general_error
 
-
     def save_checkpoint(self, save_dir):
         """
         Saves the trained model into a checkpoint in the specified directory, including the model 
@@ -309,6 +322,8 @@ class ModelManager:
         Returns:
             None
         """
+        # Start time
+        start_time = time.time()
 
         self.logger.info("Saving checkpoint to: %s", save_dir)
         if not os.path.isdir(save_dir):
@@ -335,9 +350,14 @@ class ModelManager:
                 'classifier': classifier
             }
 
+            # Log end time
+            end_time = time.time()
+            total_runtime = end_time - start_time
+
             # Save checkpoint
             torch.save(checkpoint, f"{save_dir}/checkpoint.pth")
             self.logger.info("Checkpoint saved!")
+            self.logger.info("Saved in %.4f seconds.", total_runtime)
 
         except Exception as save_error:
             self.logger.error("Failed to save checkpoint: %s", save_error)
@@ -363,8 +383,11 @@ class ModelManager:
             ModelManager: An instance of the ModelManager with the loaded model.
         """
 
-                # Get logger for this method
+        # Get logger for this method
         logger = logging.getLogger(__name__)
+
+        # Start time
+        start_time = time.time()
 
         if not os.path.isfile(checkpoint_path):
             logger.error("Checkpoint file not found: %s", checkpoint_path)
@@ -395,8 +418,6 @@ class ModelManager:
         class_to_idx = checkpoint['class_to_idx']
         arch = checkpoint.get('architecture', 'vgg16')  # Default to vgg16 if not found
 
-        logger.info("Loaded architecture from checkpoint: %s", arch)
-
         # Normalise the architecture name
         # TODO: May not be required after all.
         if arch.lower() == 'vgg':
@@ -410,6 +431,12 @@ class ModelManager:
 
         # Load the state_dict from the checkpoint
         model_manager.model.load_state_dict(checkpoint['state_dict'])
+
+        # End time
+        end_time = time.time()
+        total_runtime = end_time - start_time
+        logger.info("Loaded architecture from checkpoint: %s", arch)
+        logger.info("Checkpoint loaded in %.4f seconds.", total_runtime)
 
         return model_manager
 
@@ -427,6 +454,9 @@ class ModelManager:
                 - probs (numpy.ndarray): Probabilities of the top K predicted classes.
                 - classes (numpy.ndarray): Indices of the top K predicted classes.
         """
+        # Start time
+        start_time = time.time()
+
         if not isinstance(top_k, int) or top_k <= 0:
             self.logger.error("top_k must be a positive integer.")
             raise ValueError("top_k must be a positive integer.")
@@ -445,6 +475,10 @@ class ModelManager:
             raise RuntimeError(f"Prediction failed: {predict_error}"
             ) from predict_error
 
+        # Log end time
+        end_time = time.time()
+        total_runtime = end_time - start_time
+        self.logger.info("Prediction completed in %.4f seconds.", total_runtime)
         return probs.exp().cpu().numpy()[0], classes.cpu().numpy()[0]
 
     def load_category_names(self, json_file):
@@ -457,6 +491,9 @@ class ModelManager:
         Returns:
             dict: A dictionary mapping class indices to category names.
         """
+        # Start time
+        start_time = time.time()
+
         if not os.path.isfile(json_file):
             self.logger.error("JSON file not found: %s", json_file)
             raise FileNotFoundError(f"JSON file not found: {json_file}")
@@ -469,6 +506,11 @@ class ModelManager:
             self.logger.error("Error reading JSON file: %s", json_load_error)
             raise RuntimeError(f"Error reading JSON file: {json_load_error}"
             ) from json_load_error
+
+        # Log end time
+        end_time = time.time()
+        total_runtime = end_time - start_time
+        self.logger.info("Category names loaded in %.4f seconds.", total_runtime)
 
         return category_names
 
@@ -485,6 +527,8 @@ class ModelManager:
         Returns:
             list: A list of category names corresponding to the predicted class indices.
         """
+        # Start time
+        start_time = time.time()
 
         # Invert class_to_idx to get idx_to_class mapping
         idx_to_class = {v: k for k, v in self.class_to_idx.items()}
@@ -493,4 +537,9 @@ class ModelManager:
         # Map the predicted class indices to the actual category names
         class_names = [category_names[idx_to_class[i]] for i in class_indices]
 
+        # Log end time
+        end_time = time.time()
+        total_runtime = end_time - start_time
+        self.logger.info("Class indices mapped to names in %.4f seconds.", total_runtime)
+        
         return class_names
