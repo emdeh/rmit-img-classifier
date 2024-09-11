@@ -198,7 +198,7 @@ class ImageProcessor:
 
         # Log start time
         start_time = time.time()
-        logger.info("Processing image...")
+        logger.info("Processing image: %s", image_path)
 
         # Check if image file exists
         if not os.path.isfile(image_path):
