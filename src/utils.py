@@ -102,7 +102,7 @@ class DataLoader:
                         [0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
                 ])
             }
-            print("Data trainsformations complete...")
+            print("Data transformations complete...")
         except Exception as e:
             raise RuntimeError(f"Error defining data transformations: {e}")
 
