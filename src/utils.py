@@ -55,11 +55,6 @@ class DataLoader:
         self.data_dir = data_dir
         self.logger = logging.getLogger(__name__) # Initialise logger for this class
 
-        ## Check the data dir exists
-        # TODO: Consider if the error handling should move from train to here.
-        #if not os.path.isdir(self.data_dir):
-        #    raise FileNotFoundError(f"Data directory not found: {data_dir}")
-
     def load_data(self):
         """
         Loads the training and validation datasets from the specified directory, applies the 
