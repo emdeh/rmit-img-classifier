@@ -74,6 +74,10 @@ class DataLoader:
                 - dataloaders (dict): Dataloaders for the 'train' and 'valid' datasets.
                 - class_to_idx (dict): Mapping of class labels to indices.
         """
+        # Log start time
+        start_time = time.time()
+        self.logger.info("Loading data...")
+
         train_dir = os.path.join(self.data_dir, 'train')
         valid_dir = os.path.join(self.data_dir, 'valid')
 
@@ -156,6 +160,10 @@ class DataLoader:
                 f"Error creating dataloaders: {dataloader_error}"
                 ) from dataloader_error
 
+        # Log end time
+        end_time = time.time()
+        total_runtime = end_time - start_time
+        self.logger.info("Data loaded. Total load time: %.2f seconds", round(total_runtime, 2))
         self.logger.info("Data loaded")
         return dataloaders, image_datasets['train'].class_to_idx
 
@@ -187,6 +195,10 @@ class ImageProcessor:
         """
         # Get logger for this method
         logger = logging.getLogger(__name__)
+
+        # Log start time
+        start_time = time.time()
+        logger.info("Processing image...")
 
         # Check if image file exists
         if not os.path.isfile(image_path):
@@ -235,6 +247,14 @@ class ImageProcessor:
             raise RuntimeError(
                 f"Error procesing image: {img_process_error}"
                 ) from img_process_error
+
+        # Log end time
+        end_time = time.time()
+        total_runtime = end_time - start_time
+        logger.info(
+            "Image processing complete. Total image process time: %.2f seconds", 
+            round(total_runtime, 2)
+            )
 
         return processed_image
 
