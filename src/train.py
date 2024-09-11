@@ -114,8 +114,7 @@ if __name__ == "__main__":
     )
     # Arguments with short flags
     parser.add_argument(
-        '-dir', '--data_dir', ##TODO: Not an optional arg but a positional arguementin this project. See https://docs.python.org/3/howto/argparse.html # pylint: disable=C0301
-        required=True,
+        '-dir', '--data_dir',
         help='Directory of training data. Example: -dir /path/to/data'
     )
     parser.add_argument(
